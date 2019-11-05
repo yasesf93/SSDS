@@ -1,1 +1,1 @@
-from .dataloaderclean import CustomDataloader
+from .dataloaderclean import CustomDataLoader

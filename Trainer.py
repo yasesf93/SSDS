@@ -1,25 +1,25 @@
 import torch.nn as nn
-from ..Dataloaders import CustomDataLoader
+#from Dataloaders import CustomDataLoader
+import Dataloaders
 from torch.optim.optimizer import Optimizer
-from ..utils import progress_bar
-from ..visualizations import PlotLoss, PlotAcc
+from utils import progress_bar
 import torch
 import os
 
 class Trainer(object):
-    def __init__(self, model, traindataloader, testdataloader, optimizer, criterion, **kwargs):
+    def __init__(self, model, traindataloader, testdataloader, optimizer, criterion, classes, device, n_epoch, **kwargs):
         self.model = model
         self.traindataloader = traindataloader
         self.testdataloader = testdataloader
         self.optimizer = optimizer
         self.criterion = criterion
-        self.classes = kwargs.get('classes')
-        self.batchsizetr = kwargs.get('batchsizetr')
-        self.batchsizets = kwargs.get('batchsizets')
-        self.device = kwargs.get('device', 'cuda' if torch.cuda.is_available() else 'cpu')
+        self.classes = classes
+        self.batchsizetr = config['batchsizetr']
+        self.batchsizets = config['batchsizets']
+        self.device = device
         self.best_acc = 0
-        self.startepoch = kwargs.get('startepoch')
-        self.n_epoch = kwargs.get('n_epoch')
+        self.startepoch = 0
+        self.n_epoch = n_epoch
 
 
     def train_minibatch(self, batch_idx):
@@ -60,7 +60,7 @@ class Trainer(object):
             best_acc = acc
 
 
-    def train(self, epochs=n_epoch):
+    def train(self, epochs):
         print(epochs)
         for epoch in range(self.start_epoch, epochs+1):
             self.train_epoch(epoch)  
@@ -103,7 +103,7 @@ class Trainer(object):
             best_acc = acc
 
 
-    def test(self, epochs=n_epoch):
+    def test(self, epoch):
         print(epochs)
         for epoch in range(self.start_epoch, epochs+1):
             self.test_epoch(epoch)  
