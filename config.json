@@ -1,0 +1,44 @@
+{
+  "_comment": "===== TESTING MODEL =====",
+  "model_dir": "models/a_very_robust_model",
+
+  "_comment": "===== DATASET CONFIGURATION =====",
+  "data_path": "Datasets/cifar10clean",
+  "data_name": "CIFAR10"
+
+  "_comment": "===== TRAINING CONFIGURATION =====",
+
+  "natural_training": true,
+  "train_attack_method":"SSDS",
+  "random_seed": 451760341,
+  "training_epochs": 1000,
+  "plot_epochs": 100,
+  "checkpoint_epochs": 100,
+  "training_batch_size": 128,
+  "fixed_learning_rate": true,
+  "learning_rate_training": 0.001,
+  "weight_decay": 0.9,
+  "step_size_schedule": [[0, 0.1], [200, 0.01], [600, 0.001]],
+  "weight_decay": 0.0002,
+  "momentum": 0.9,
+  "loss_function": "Xent"
+  "optimizer": "SGD"
+  "model_architecture": "Resnet"
+  "transform": true,
+  
+
+  "_comment": "===== EVAL CONFIGURATION =====",
+  "num_eval_examples": 10000,
+  "eval_batch_size": 100,
+  "eval_on_cpu": false,
+
+  "_comment": "=====ADVERSARIAL EXAMPLES & TEST CONFIGURATION=====",
+  "test_attack_method": "SSDS"
+  "epsilon": 0.3",
+  "test_batch_size": 128, 
+  "num_steps": 10,
+  "step_size": 2.0,
+  "random_start": true,
+  "loss_func": "xent",
+  "store_adv_path": "attack.npy"
+}
