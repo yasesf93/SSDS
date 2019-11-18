@@ -2,10 +2,10 @@ import numpy as np
 import torch
 
 
-class CustomDataLoader(object):
+class CleanDataLoader(object):
     """docstring for DataLoader"""
     def __init__(self, dataset, batch_size, shuffle=True):
-        super(CustomDataLoader, self).__init__()
+        super(CleanDataLoader, self).__init__()
         self.dataset = dataset
         self.batch_size = batch_size
         self.shuffle = shuffle
@@ -25,7 +25,7 @@ class CustomDataLoader(object):
         else:
             indexes = self.indexes[index*self.batch_size:(index+1)*self.batch_size]
 
-        I_batch, Target_batch = [], [], []
+        I_batch, Target_batch = [], []
         for index in indexes:
             I_samp, Target_samp = self.dataset[index]
             I_batch.append(I_samp)
