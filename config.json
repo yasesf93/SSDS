@@ -11,7 +11,7 @@
 
   "_comment": "===== TRAINING CONFIGURATION =====",
 
-  "attack_method":"SSDS", 	"_comment": "=====REG,SSDS,PGD,FGSM,NOLAG,FREE====",
+  "attack_method":"NOLAG", 	"_comment": "=====REG,SSDS,PGD,FGSM,NOLAG,NOLAM,FREE====",
   "random_seed": 451760341,
   "training_epochs": 1000,
   "plot_epochs": 100,
@@ -19,15 +19,14 @@
   "training_batch_size": 128,
   "fixed_learning_rate": true,
   "learning_rate_training": 0.001,
-  "weight_decay": 0.9,
+  "weight_decay": 0.0002,
   "step_size_schedule": [[0, 0.1], [200, 0.01], [600, 0.001]],
   "weight_decay": 0.0002,
   "momentum": 0.9,
   "loss_function": "Xent",	"_comment":"Xent-CW-TRADES",
-  "optimizer": "SGD",		"_comment":"SSDS_Opt,SGD,ADAM,MOMENTUM",
-  "model_architecture": "Resnet",  		"_comment":"Resnet,WResnet",
-  "transform": true,
-  "experiment_id" : "REG_SGD_Xent_CIFAR10_Resnet",		"_comment": "train_attack_method_Optimizer_loss_function_Dataset_Model",
+  "optimizer": "SGDMOM",				"_comment":"SGD,SGDMOM,SubOpt,SubOptMOM",
+  "model_architecture": "Resnet50",  		"_comment":"Resnet50,WResnet,Resnet18,Simple",
+  "transform": false,                            "_comment" : "should be true for IMAGENET" , 
   "train" : true,
   
 
