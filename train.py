@@ -59,8 +59,9 @@ c_1 = config['c_1']
 c_2 = config['c_2']
 t = config['t']
 
-
-expid = '%s_%s_%s_%s_%s'%(str(atmeth), str(opt), str(loss), str(dataname), str(model))
+if not os.path.exists('Experiments'):
+    os.makedirs('Experiments')
+expid = 'Experiments/%s_%s_%s_%s_%s'%(str(atmeth), str(opt), str(loss), str(dataname), str(model))
 print('expid',expid)
 ######################################################## Transformation ########################################
 if config['transform']==True:
