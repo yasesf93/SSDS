@@ -27,7 +27,7 @@ class RegTrainer(BaseTrainer):
         
     def train_minibatch(self, batch_idx):
         attacker = Attacker(self.atmeth, self.eps, self.model, self.stepsize, self.k, self.traindataloader, self.batchsizetr, self.optimizer, self.criterion, self.classes, self.n_epoch, self.expid, self.checkepoch,nstep=self.nstep)
-        (I, targets) = self.traindataloader[batch_idx]
+        (I, _), targets = self.traindataloader[batch_idx]
         I, targets = I.to(device), targets.to(device)
         targets=targets.long()
 

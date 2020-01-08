@@ -27,8 +27,8 @@ class BaseTrainer(object):
         self.log = {}
 
         ######## Updating the Logger ##########
-        self.log['training loss'] = []
-        self.log['training acc'] = []        
+        self.log['train_loss'] = []
+        self.log['train_acc'] = []        
 
     def train_minibatch(self, batch_idx):
         raise NotImplementedError('Base Class')
@@ -48,8 +48,8 @@ class BaseTrainer(object):
             correct += batch_correct
             loss_avg = train_loss/(i+1)
             progress_bar(i, len(self.traindataloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'% (loss_avg, 100.*correct/total, correct, total))
-        self.log['training loss'].append(loss_avg)
-        self.log['training acc'].append(100.*correct/total)
+        self.log['train_loss'].append(loss_avg)
+        self.log['train_acc'].append(100.*correct/total)
 
 
         #Save checkpoint Best

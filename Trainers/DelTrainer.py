@@ -31,10 +31,11 @@ class DelTrainer(BaseTrainer):
         self.stepsize = stepsize
         self.k = k
         self.attacker = Attacker(self.atmeth, self.eps, self.model, self.stepsize, self.k, self.traindataloader, self.batchsizetr, self.optimizer, self.criterion, self.classes, self.n_epoch, self.expid, self.checkepoch, c_1=self.c_1, c_2=self.c_2, lam=self.lam)
-        self.log['train_accuracy'] = {}
-        self.log['train_loss'] = {}
-        self.log['train_lambda'] = {}
-        self.log['train_v'] = {}
+        self.log['train_accuracy'] = []
+        self.log['train_loss'] = []
+        self.log['train_lambda'] = []
+        self.log['train_v'] = []
+        self.log['train_t'] = []
         
 
     def train_minibatch(self, batch_idx):
@@ -68,3 +69,13 @@ class DelTrainer(BaseTrainer):
         if self.atmeth == 'SSDS' or self.atmeth == 'NOLAM':
             self.v[indexes] = new_v.unsqueeze(1)
         return loss.item(), predicted.eq(targets).sum().item(), targets.size(0)
+
+
+    def train_epoch(self, epoch):
+        super(DelTrainer, self).train_epoch(epoch)
+        if self.atmeth in ['SSDS', 'NOLAG']:
+            self.log['train_lambda'].append(self.lam)
+        if self.atmeth in ['NOLAM', 'SSDS']:
+            self.log['train_v'].append(self.v.cpu().detach().numpy().tolist())
+        if self.atmeth is 'SSDS':
+            self.log['train_t'].append(self.t)
