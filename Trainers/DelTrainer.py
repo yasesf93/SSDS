@@ -17,8 +17,8 @@ with open('config.json') as config_file: # Reading the Config File
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 class DelTrainer(BaseTrainer):
-    def __init__(self, model, traindataloader, optimizer, criterion, classes, n_epoch, trainbatchsize, expid, checkepoch, atmeth, v, t, lam, c_1, c_2, eps, stepsize, k, **kwargs):
-        super().__init__(model, traindataloader, optimizer, criterion, classes, n_epoch, trainbatchsize, expid, checkepoch, **kwargs)
+    def __init__(self, model, traindataloader, optimizer, criterion, classes, n_epoch, trainbatchsize, expid, checkepoch,pres, atmeth, v, t, lam, c_1, c_2, eps, stepsize, k, **kwargs):
+        super().__init__(model, traindataloader, optimizer, criterion, classes, n_epoch, trainbatchsize, expid, checkepoch, pres, **kwargs)
         self.atmeth = atmeth
         self.v = v
         self.t = t 
@@ -30,13 +30,28 @@ class DelTrainer(BaseTrainer):
         self.eps = eps
         self.stepsize = stepsize
         self.k = k
+        self.differ = torch.zeros(self.traindataloader.dataset.delta.size())
         self.attacker = Attacker(self.atmeth, self.eps, self.model, self.stepsize, self.k, self.traindataloader, self.batchsizetr, self.optimizer, self.criterion, self.classes, self.n_epoch, self.expid, self.checkepoch, c_1=self.c_1, c_2=self.c_2, lam=self.lam)
         self.log['train_accuracy'] = []
         self.log['train_loss'] = []
         self.log['train_lambda'] = []
-        self.log['train_v'] = []
         self.log['train_t'] = []
+
+        self.log['train_spec_delt_val_log'] = {}
+        self.log['train_spec_delt_val_log']['id'] = [40000,1,16,16] # a value that works for all the datasets
+        self.log['train_spec_delt_val_log']['val'] = [self.traindataloader.dataset.delta[self.log['train_spec_delt_val_log']['id']]]
+
+        self.log['train_spec_img_log']['ids'] = [10, 15000, 49990] # a value that works for all the datasets
+
+        self.log['train_spec_img_log']['v'] = [[] for _ in range(len(self.log['train_spec_img_log']['ids']))]
+        self.log['train_spec_img_log']['infnormdelta'] = [[] for _ in range(len(self.log['train_spec_img_log']['ids']))]
+        self.log['train_spec_img_log']['2normdelt'] = [[] for _ in range(len(self.log['train_spec_img_log']['ids']))]
+
+        self.log['train_spec_img_log']['2normdiff'] = [[] for _ in range(len(self.log['train_spec_img_log']['ids']))]
+        self.log['train_spec_img_log']['1normdiff'] = [[] for _ in range(len(self.log['train_spec_img_log']['ids']))]
         
+        self.log['train_img_vis_log']['ids'] = [10, 15000, 49990, 100, 1000, 10000, 25000, 40000] # a value that works for all the datasets
+        self.log['train_img_vis_log']['img_tuple'] = [[] for _ in range(len(self.log['train_img_vis_log']['ids']))]
 
     def train_minibatch(self, batch_idx):
         
@@ -65,6 +80,7 @@ class DelTrainer(BaseTrainer):
         else:
             self.optimizer.step()        
         _,predicted = outputs.max(1)
+        self.differ[indexes] = (new_delta - self.traindataloader.dataset.delta[indexes].cpu())
         self.traindataloader.dataset.delta[indexes] = new_delta
         if self.atmeth == 'SSDS' or self.atmeth == 'NOLAM':
             self.v[indexes] = new_v.unsqueeze(1)
@@ -73,9 +89,23 @@ class DelTrainer(BaseTrainer):
 
     def train_epoch(self, epoch):
         super(DelTrainer, self).train_epoch(epoch)
-        if self.atmeth in ['SSDS', 'NOLAG']:
-            self.log['train_lambda'].append(self.lam)
-        if self.atmeth in ['NOLAM', 'SSDS']:
-            self.log['train_v'].append(self.v.cpu().detach().numpy().tolist())
+
+        
+
         if self.atmeth is 'SSDS':
             self.log['train_t'].append(self.t)
+            self.log['train_lambda'].append(self.lam)
+
+        self.log['train_spec_delt_val_log']['val'].append(self.traindataloader.dataset.delta[self.log['train_spec_delt_val_log']['id']])
+
+        for idx, img_id in enumerate(self.log['train_spec_img_log']['ids']):
+            self.log['train_spec_img_log']['infnormdelta'][idx].append(self.traindataloader.dataset.delta[img_id].norm(p=float("inf")).item())
+            self.log['train_spec_img_log']['2normdelt'][idx].append(self.traindataloader.dataset.delta[img_id].norm(p=2).item())
+            self.log['train_spec_img_log']['2normdiff'][idx].append(self.differ[img_id].norm(p=2).item())
+            self.log['train_spec_img_log']['1normdiff'][idx].append(self.differ[img_id].norm(p=1).item())
+            if self.atmeth in ['NOLAM', 'SSDS']:
+                self.log['train_spec_img_log']['v'][idx].append(self.v[img_id].item())
+
+        
+        for idx, img_id in enumerate(self.log['train_img_vis_log']['ids']):
+            self.log['train_img_vis_log']['img_tuple'][idx].append(self.traindataloader.dataset[img_id])

@@ -12,7 +12,7 @@ with open('config.json') as config_file: # Reading the Config File
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 class BaseTrainer(object):
-    def __init__(self, model, traindataloader, optimizer, criterion, classes, n_epoch, trainbatchsize, expid, checkepoch, **kwargs):
+    def __init__(self, model, traindataloader, optimizer, criterion, classes, n_epoch, trainbatchsize, expid, checkepoch, pres, **kwargs):
         self.model = model
         self.traindataloader = traindataloader
         self.optimizer = optimizer
@@ -24,11 +24,12 @@ class BaseTrainer(object):
         self.n_epoch = n_epoch
         self.expid = expid
         self.checkepoch = checkepoch
+        self.pres = pres
         self.log = {}
-
-        ######## Updating the Logger ##########
         self.log['train_loss'] = []
-        self.log['train_acc'] = []        
+        self.log['train_acc'] = []   
+        self.log['epoch'] = self.startepoch
+             
 
     def train_minibatch(self, batch_idx):
         raise NotImplementedError('Base Class')
@@ -50,7 +51,6 @@ class BaseTrainer(object):
             progress_bar(i, len(self.traindataloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'% (loss_avg, 100.*correct/total, correct, total))
         self.log['train_loss'].append(loss_avg)
         self.log['train_acc'].append(100.*correct/total)
-
 
         #Save checkpoint Best
         acc = 100.*correct/total
@@ -81,4 +81,13 @@ class BaseTrainer(object):
         model.train()
         print(epochs)
         for epoch in range(self.startepoch, epochs+1):
-            self.train_epoch(epoch)  
+            self.train_epoch(epoch) 
+            if (epoch)%self.checkepoch == 0:
+                self.save_log(epoch) 
+            if self.log['train_acc'][epoch]-self.log['train_acc'][epoch-1] < self.pres:
+                break
+
+
+    def save_log(self, epoch):
+        self.log['epoch'] = epoch
+        torch.save(self.log, '%s.checkpoint/log.pkl'%(self.expid))

@@ -47,6 +47,7 @@ opt = config['optimizer']
 model = config['model_architecture']
 atmeth = config['attack_method']
 checkepoch = config['checkpoint_epochs']
+pres = config['precision_bound']
 
 
 eps = config['epsilon']
@@ -189,8 +190,8 @@ if opt == 'SubOptMOM':
 
 if training == True:  
     if atmeth == 'PGD' or  atmeth == 'FGSM' or atmeth == 'REG' :
-        trainer = Trainers.RegTrainer(net, trainloader, optimizer, criterion, classes, n_epoch, batchsizetr, expid, checkepoch, atmeth, epsilon=eps, nstep=nstep, stepsize=stepsize, k=k)
+        trainer = Trainers.RegTrainer(net, trainloader, optimizer, criterion, classes, n_epoch, batchsizetr, expid, checkepoch, pres, atmeth, epsilon=eps, nstep=nstep, stepsize=stepsize, k=k)
         trainer.train(epochs=n_epoch, model=net)
     elif atmeth == 'SSDS' or atmeth == 'NOLAG' or atmeth == 'NOLAM':
-        trainer = Trainers.DelTrainer(net, trainloader, optimizer, criterion, classes, n_epoch, batchsizetr, expid, checkepoch, atmeth, v, t, lam, c_1, c_2, eps, stepsize, k)
+        trainer = Trainers.DelTrainer(net, trainloader, optimizer, criterion, classes, n_epoch, batchsizetr, expid, checkepoch, pres, atmeth, v, t, lam, c_1, c_2, eps, stepsize, k)
         trainer.train(epochs=n_epoch, model=net)

@@ -28,6 +28,7 @@
   "model_architecture": "Simple",  		"_comment":"Resnet50,WResnet,Resnet18,Simple",
   "transform": false,                            "_comment" : "should be true for IMAGENET" , 
   "train" : true,
+  "precision_bound" : 0.001,
   
 
   "_comment": "=====ADVERSARIAL EXAMPLES=====",
