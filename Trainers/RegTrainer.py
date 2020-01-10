@@ -14,30 +14,29 @@ with open('config.json') as config_file: # Reading the Config File
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 class RegTrainer(BaseTrainer):
-    def __init__(self, model, traindataloader, optimizer, criterion, classes, n_epoch, trainbatchsize, expid, checkepoch, pres, atmeth, **kwargs):
-        super().__init__(model, traindataloader, optimizer, criterion, classes, n_epoch, trainbatchsize, expid, checkepoch, pres, **kwargs)
+    def __init__(self, model, traindataloader, optimizer, criterion, classes, n_epoch, trainbatchsize, expid, checkepoch, pres, stepsize, k, atmeth, **kwargs):
+        super().__init__(model, traindataloader, optimizer, criterion, classes, n_epoch, trainbatchsize, expid, checkepoch, pres, stepsize, k,**kwargs)
         self.atmeth = atmeth
         self.pert = []
         self.best_acc = 0
         self.startepoch = 0
         self.eps = kwargs.get('epsilon')
         self.nstep = kwargs.get('nstep')
-        self.stepsize = kwargs.get('stepsize')
-        self.k = kwargs.get('k')
-        
+        self.attacker = Attacker(self.eps, self.model, self.stepsize, self.optimizer, self.criterion, nstep=self.nstep)
+
+
     def train_minibatch(self, batch_idx):
-        attacker = Attacker(self.eps, self.model, self.stepsize, self.optimizer, self.criterion, nstep=self.nstep)
         (I, _), targets = self.traindataloader[batch_idx]
         I, targets = I.to(device), targets.to(device)
         targets = targets.long()
 
         if self.atmeth == "PGD":
-            I , self.pert = attacker.PGDattack(I.cpu().numpy(),targets.cpu(),self.optimizer)
+            I , self.pert = self.attacker.PGDattack(I.cpu().numpy(),targets.cpu(),self.optimizer)
             I = torch.from_numpy(I)
             I = I.to(device)
     
         if self.atmeth == "FGSM":
-            I = attacker.FGSMattack(I.cpu().numpy(),targets.cpu(),self.optimizer)
+            I = self.attacker.FGSMattack(I.cpu().numpy(),targets.cpu(),self.optimizer)
             I = torch.from_numpy(I)
             I = I.to(device)
 

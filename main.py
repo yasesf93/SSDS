@@ -181,13 +181,14 @@ if opt == 'SubOptMOM':
 
 
 ###################################### Main ################################################################
-# #Training
-# if atmeth == 'PGD' or  atmeth == 'FGSM' or atmeth == 'REG' :
-#     trainer = Trainers.RegTrainer(net, trainloader, optimizer, criterion, classes, n_epoch, batchsizetr, expid, checkepoch, pres, atmeth, epsilon=eps, nstep=nstep, stepsize=stepsize, k=k)
-#     trainer.train(epochs=n_epoch, model=net)
-# elif atmeth == 'SSDS' or atmeth == 'NOLAG' or atmeth == 'NOLAM':
-#     trainer = Trainers.DelTrainer(net, trainloader, optimizer, criterion, classes, n_epoch, batchsizetr, expid, checkepoch, pres, atmeth, v_tr, t, lam, c_1, c_2, eps, stepsize, k)
-#     trainer.train(epochs=n_epoch, model=net)
+#Training
+
+if atmeth == 'PGD' or  atmeth == 'FGSM' or atmeth == 'REG' :
+    trainer = Trainers.RegTrainer(net, trainloader, optimizer, criterion, classes, n_epoch, batchsizetr, expid, checkepoch, pres, stepsize, k, atmeth, epsilon=eps, nstep=nstep)
+    trainer.train(epochs=n_epoch, model=net)
+elif atmeth == 'SSDS' or atmeth == 'NOLAG' or atmeth == 'NOLAM':
+    trainer = Trainers.DelTrainer(net, trainloader, optimizer, criterion, classes, n_epoch, batchsizetr, expid, checkepoch, pres, stepsize, k, atmeth, v_tr, t, lam, c_1, c_2, eps)
+    trainer.train(epochs=n_epoch, model=net)
 
 #Testing
 tr_model = torch.load('%s/checkpoint/ckpt.trainbest'%(expid))

@@ -5,6 +5,7 @@ from utils import progress_bar
 import torch
 import os
 import json
+import numpy as np
 
 with open('config.json') as config_file: # Reading the Config File 
     config = json.load(config_file)
@@ -12,7 +13,7 @@ with open('config.json') as config_file: # Reading the Config File
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 class BaseTrainer(object):
-    def __init__(self, model, traindataloader, optimizer, criterion, classes, n_epoch, trainbatchsize, expid, checkepoch, pres, **kwargs):
+    def __init__(self, model, traindataloader, optimizer, criterion, classes, n_epoch, trainbatchsize, expid, checkepoch, pres, stepsize, k, **kwargs):
         self.model = model
         self.traindataloader = traindataloader
         self.optimizer = optimizer
@@ -25,6 +26,8 @@ class BaseTrainer(object):
         self.expid = expid
         self.checkepoch = checkepoch
         self.pres = pres
+        self.stepsize = stepsize
+        self.k = k
         self.log = {}
         self.log['train_loss'] = []
         self.log['train_acc'] = []   
@@ -48,7 +51,9 @@ class BaseTrainer(object):
             total += batch_total
             correct += batch_correct
             loss_avg = train_loss/(i+1)
-            progress_bar(i, len(self.traindataloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'% (loss_avg, 100.*correct/total, correct, total))
+            progress_bar(i, len(self.traindataloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'% (loss_avg, 100.*correct/total, correct, total))    
+        if (epoch % self.checkepoch == 0) and (self.stepsize>0.0001):
+            self.stepsize = self.stepsize*np.exp(-self.k*epoch)
         self.log['train_loss'].append(loss_avg)
         self.log['train_acc'].append(100.*correct/total)
 

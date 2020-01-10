@@ -1,9 +1,4 @@
 {
-  "_comment": "===== TESTING MODEL =====",
-  "model_dir": "models/a_very_robust_model",
-
-
-
   "_comment": "===== DATASET CONFIGURATION =====",
   "data_name": "MNIST",	"_comment": "====CIFAR10,IMAGENET,MNIST====",
 
@@ -11,10 +6,9 @@
 
   "_comment": "===== TRAINING CONFIGURATION =====",
 
-  "attack_method":"PGD", 	"_comment": "=====REG,SSDS,PGD,FGSM,NOLAG,NOLAM,FREE====",
+  "attack_method":"SSDS", 	"_comment": "=====REG,SSDS,PGD,FGSM,NOLAG,NOLAM,FREE====",
   "random_seed": 451760341,
   "training_epochs": 1,
-  "plot_epochs": 100,
   "checkpoint_epochs": 100,
   "training_batch_size": 128,
   "fixed_learning_rate": true,

@@ -17,8 +17,8 @@ with open('config.json') as config_file: # Reading the Config File
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 class DelTrainer(BaseTrainer):
-    def __init__(self, model, traindataloader, optimizer, criterion, classes, n_epoch, trainbatchsize, expid, checkepoch,pres, atmeth, v, t, lam, c_1, c_2, eps, stepsize, k, **kwargs):
-        super().__init__(model, traindataloader, optimizer, criterion, classes, n_epoch, trainbatchsize, expid, checkepoch, pres, **kwargs)
+    def __init__(self, model, traindataloader, optimizer, criterion, classes, n_epoch, trainbatchsize, expid, checkepoch, pres, stepsize, k, atmeth, v, t, lam, c_1, c_2, eps, **kwargs):
+        super().__init__(model, traindataloader, optimizer, criterion, classes, n_epoch, trainbatchsize, expid, checkepoch, pres, stepsize, k, **kwargs)
         self.atmeth = atmeth
         self.v = v
         self.t = t 
@@ -28,8 +28,6 @@ class DelTrainer(BaseTrainer):
         self.best_acc = 0
         self.startepoch = 0
         self.eps = eps
-        self.stepsize = stepsize
-        self.k = k
         self.differ = torch.zeros(self.traindataloader.dataset.delta.size())
         self.attacker = Attacker(self.eps, self.model, self.stepsize, self.optimizer, self.criterion, c_1=self.c_1, c_2=self.c_2, lam=self.lam)
         self.log['train_accuracy'] = []
@@ -41,6 +39,7 @@ class DelTrainer(BaseTrainer):
         self.log['train_spec_delt_val_log']['id'] = [40000,1,16,16] # a value that works for all the datasets
         self.log['train_spec_delt_val_log']['val'] = [self.traindataloader.dataset.delta[self.log['train_spec_delt_val_log']['id']]]
 
+        self.log['train_spec_img_log'] = {}
         self.log['train_spec_img_log']['ids'] = [10, 15000, 49990] # a value that works for all the datasets
 
         self.log['train_spec_img_log']['v'] = [[] for _ in range(len(self.log['train_spec_img_log']['ids']))]
@@ -50,6 +49,7 @@ class DelTrainer(BaseTrainer):
         self.log['train_spec_img_log']['2normdiff'] = [[] for _ in range(len(self.log['train_spec_img_log']['ids']))]
         self.log['train_spec_img_log']['1normdiff'] = [[] for _ in range(len(self.log['train_spec_img_log']['ids']))]
         
+        self.log['train_img_vis_log'] = {}
         self.log['train_img_vis_log']['ids'] = [10, 15000, 49990, 100, 1000, 10000, 25000, 40000] # a value that works for all the datasets
         self.log['train_img_vis_log']['img_tuple'] = [[] for _ in range(len(self.log['train_img_vis_log']['ids']))]
 
@@ -88,9 +88,7 @@ class DelTrainer(BaseTrainer):
 
 
     def train_epoch(self, epoch):
-        super(DelTrainer, self).train_epoch(epoch)
-
-        
+        super(DelTrainer, self).train_epoch(epoch)       
 
         if self.atmeth is 'SSDS':
             self.log['train_t'].append(self.t)
@@ -109,3 +107,13 @@ class DelTrainer(BaseTrainer):
         
         for idx, img_id in enumerate(self.log['train_img_vis_log']['ids']):
             self.log['train_img_vis_log']['img_tuple'][idx].append(self.traindataloader.dataset[img_id])
+        
+        #print functions
+        print('attack method', self.atmeth)
+        print('infinity norm of delta value', self.traindataloader.dataset.delta[15000].norm(p=float("inf")).item())
+        if self.atmeth is 'SSDS':
+            print('lambda', self.lam)
+        if self.atmeth in ['NOLAM', 'SSDS']:
+            print('v', self.v[15000].item())
+        print('step-size', self.stepsize)
+        print('L-2 norm of delta difference', self.differ[15000].norm(p=2).item())
