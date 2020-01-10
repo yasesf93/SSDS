@@ -13,7 +13,7 @@
 
   "attack_method":"PGD", 	"_comment": "=====REG,SSDS,PGD,FGSM,NOLAG,NOLAM,FREE====",
   "random_seed": 451760341,
-  "training_epochs": 1000,
+  "training_epochs": 1,
   "plot_epochs": 100,
   "checkpoint_epochs": 100,
   "training_batch_size": 128,
@@ -42,6 +42,7 @@
   "c_1" : 100,
   "c_2" : 100,
   "t" : 1,
+  "PGD_Restarts" : 2, 
 
 
 "_comment": "=====TEST CONFIGURATION=====",

@@ -13,7 +13,7 @@ import Dataloaders
 import Models
 import Optimizers
 from Loss.trades import trades_loss
-
+import Testers
 
 with open('config.json') as config_file: # Reading the Config File 
     config = json.load(config_file)
@@ -59,6 +59,7 @@ k = config['step_size_decay']
 c_1 = config['c_1']
 c_2 = config['c_2']
 t = config['t']
+n_ep_PGD = config['PGD_Restarts']
 
 if not os.path.exists('Experiments'):
     os.makedirs('Experiments')
@@ -104,24 +105,18 @@ else:
 
 ######################################################## Data translation  ########################################
 if dataname == "CIFAR10":
-    if training == True:
-        if atmeth == 'SSDS' or atmeth == 'NOLAG' or atmeth == 'NOLAM':
-            trainset = Datasets.CIFAR10del(root='./data', train=True, download=True, transform=transform_train)
-            trainloader = Dataloaders.DelDataLoader(trainset, batch_size=batchsizetr, shuffle=True)
-            v = v_scale*torch.ones(trainloader.dataset.data.shape[0], 1)   
-            differ = torch.zeros(trainloader.dataset.data.shape)     
-        else:
-            trainset = Datasets.cifar10clean(root='./data', train=True, download=True, transform=transform_train)
-            trainloader = Dataloaders.CleanDataLoader(trainset, batch_size=batchsizetr, shuffle=True) 
+    if atmeth == 'SSDS' or atmeth == 'NOLAG' or atmeth == 'NOLAM':
+        trainset = Datasets.CIFAR10del(root='./data', train=True, download=True, transform=transform_train)
+        trainloader = Dataloaders.DelDataLoader(trainset, batch_size=batchsizetr, shuffle=True)
+        v_tr = v_scale*torch.ones(trainloader.dataset.data.shape[0], 1)     
+        testset = Datasets.CIFAR10del(root='./data', train=False, download=True, transform=transform_test)
+        testloader = Dataloaders.DelDataLoader(testset, batch_size=batchsizets, shuffle=True)
+        v_ts = v_scale*torch.ones(testloader.dataset.data.shape[0], 1)    
     else:
-        if atmeth == 'SSDS' or atmeth == 'NOLAG' or atmeth == 'NOLAM':
-            testset = Datasets.CIFAR10del(root='./data', train=False, download=True, transform=transform_test)
-            testloader = Dataloaders.DelDataLoader(testset, batch_size=batchsizets, shuffle=True)
-            v = v_scale*torch.ones(testloader.dataset.data.shape[0], 1)    
-            differ = torch.zeros(testloader.dataset.data.shape)    
-        else:
-            testset = Datasets.cifar10clean(root='./data', train=False, download=True, transform=transform_test)
-            testloader = Dataloaders.CleanDataLoader(testset, batch_size=batchsizets, shuffle=True)         
+        trainset = Datasets.cifar10clean(root='./data', train=True, download=True, transform=transform_train)
+        trainloader = Dataloaders.CleanDataLoader(trainset, batch_size=batchsizetr, shuffle=True) 
+        testset = Datasets.cifar10clean(root='./data', train=False, download=True, transform=transform_test)
+        testloader = Dataloaders.CleanDataLoader(testset, batch_size=batchsizets, shuffle=True) 
     classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
 if dataname == "IMAGENET":
@@ -133,16 +128,12 @@ if dataname == "IMAGENET":
     dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val', 'test']}
 
 if dataname == "MNIST":
-    if training == True:
-        trainset = Datasets.MNISTdel(root='./data', train=True, download=True, transform=transform_train)
-        trainloader = Dataloaders.DelDataLoader(trainset, batch_size=batchsizetr, shuffle=True)
-        v = v_scale*torch.ones(trainloader.dataset.delta.shape[0],1)   
-        differ = torch.zeros(trainloader.dataset.delta.shape)     
-    else:
-        testset = Datasets.MNISTdel(root='./data', train=False, download=True, transform=transform_test)
-        testloader = Dataloaders.DelDataLoader(testset, batch_size=batchsizets, shuffle=True)
-        v = v_scale*torch.ones(testloader.dataset.delta.shape[0], 1).to(device)  
-        differ = torch.zeros(testloader.dataset.delta.shape)    
+    trainset = Datasets.MNISTdel(root='./data', train=True, download=True, transform=transform_train)
+    trainloader = Dataloaders.DelDataLoader(trainset, batch_size=batchsizetr, shuffle=True)
+    v_tr = v_scale*torch.ones(trainloader.dataset.delta.shape[0],1)      
+    testset = Datasets.MNISTdel(root='./data', train=False, download=True, transform=transform_test)
+    testloader = Dataloaders.DelDataLoader(testset, batch_size=batchsizets, shuffle=True)
+    v_ts = v_scale*torch.ones(testloader.dataset.delta.shape[0], 1).to(device)     
     classes = ['0 - zero', '1 - one', '2 - two', '3 - three', '4 - four', '5 - five', '6 - six', '7 - seven', '8 - eight', '9 - nine']
 
 
@@ -188,10 +179,42 @@ if opt == 'SubOptMOM':
     optimizer = Optimizers.SubOpt(net.parameters(), lr=lr, momentum=momentum, weight_decay=wd, lam = lam)
 
 
-if training == True:  
+
+###################################### Main ################################################################
+# #Training
+# if atmeth == 'PGD' or  atmeth == 'FGSM' or atmeth == 'REG' :
+#     trainer = Trainers.RegTrainer(net, trainloader, optimizer, criterion, classes, n_epoch, batchsizetr, expid, checkepoch, pres, atmeth, epsilon=eps, nstep=nstep, stepsize=stepsize, k=k)
+#     trainer.train(epochs=n_epoch, model=net)
+# elif atmeth == 'SSDS' or atmeth == 'NOLAG' or atmeth == 'NOLAM':
+#     trainer = Trainers.DelTrainer(net, trainloader, optimizer, criterion, classes, n_epoch, batchsizetr, expid, checkepoch, pres, atmeth, v_tr, t, lam, c_1, c_2, eps, stepsize, k)
+#     trainer.train(epochs=n_epoch, model=net)
+
+#Testing
+tr_model = torch.load('%s/checkpoint/ckpt.trainbest'%(expid))
+net.load_state_dict(tr_model['net'])
+print(tr_model['epoch'])
+print(tr_model['acc'])
+ts_acc_mat = []
+
+for attack in ['REG', 'PGD', 'FGSM', 'SSDS','NOLAM', 'NOLAG']:
+    atmeth = attack
+    if atmeth in ['FGSM', 'REG']:
+        n_ep_test = 1
+    if atmeth in ['SSDS','NOLAM','NOLAG']:
+        n_ep_test = n_epoch
+    if atmeth == 'PGD':
+        n_ep_test = n_ep_PGD
     if atmeth == 'PGD' or  atmeth == 'FGSM' or atmeth == 'REG' :
-        trainer = Trainers.RegTrainer(net, trainloader, optimizer, criterion, classes, n_epoch, batchsizetr, expid, checkepoch, pres, atmeth, epsilon=eps, nstep=nstep, stepsize=stepsize, k=k)
-        trainer.train(epochs=n_epoch, model=net)
+        tester = Testers.RegTester(net, testloader, optimizer, criterion, classes, n_ep_test, batchsizets, expid, checkepoch, pres, atmeth, epsilon=eps, nstep=nstep, stepsize=stepsize, k=k)
+        test_accuracy = tester.test(epochs=n_ep_test, model=net)
+        ts_acc_mat.append(test_accuracy)
     elif atmeth == 'SSDS' or atmeth == 'NOLAG' or atmeth == 'NOLAM':
-        trainer = Trainers.DelTrainer(net, trainloader, optimizer, criterion, classes, n_epoch, batchsizetr, expid, checkepoch, pres, atmeth, v, t, lam, c_1, c_2, eps, stepsize, k)
-        trainer.train(epochs=n_epoch, model=net)
+        tester = Testers.DelTester(net, testloader, optimizer, criterion, classes, n_ep_test, batchsizets, expid, checkepoch, pres, atmeth, v_ts, t, lam, c_1, c_2, eps, stepsize, k)
+        test_accuracy = tester.test(epochs=n_ep_test, model=net)
+        ts_acc_mat.append(test_accuracy)
+ts_acc_mat.append(['REG', 'PGD', 'FGSM', 'SSDS','NOLAM', 'NOLAG'])
+#np.save('%s/testresults.txt'%(expid), ts_acc_mat)
+res = open('%s/testresults.txt'%(expid), 'wb') 
+res.write(ts_acc_mat)
+res.close()
+print(ts_acc_mat)

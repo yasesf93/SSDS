@@ -83,11 +83,12 @@ class BaseTrainer(object):
         for epoch in range(self.startepoch, epochs+1):
             self.train_epoch(epoch) 
             if (epoch)%self.checkepoch == 0:
-                self.save_log(epoch) 
-            if self.log['train_acc'][epoch]-self.log['train_acc'][epoch-1] < self.pres:
+                self.save_log(epoch)
+            print(self.log['train_acc'][epoch]-self.log['train_acc'][epoch-1]) 
+            if epoch != 0 and 0<(self.log['train_acc'][epoch]-self.log['train_acc'][epoch-1]) < self.pres:
                 break
 
 
     def save_log(self, epoch):
         self.log['epoch'] = epoch
-        torch.save(self.log, '%s.checkpoint/log.pkl'%(self.expid))
+        torch.save(self.log, '%s/checkpoint/trainlog.pkl'%(self.expid))

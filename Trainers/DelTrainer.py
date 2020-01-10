@@ -31,7 +31,7 @@ class DelTrainer(BaseTrainer):
         self.stepsize = stepsize
         self.k = k
         self.differ = torch.zeros(self.traindataloader.dataset.delta.size())
-        self.attacker = Attacker(self.atmeth, self.eps, self.model, self.stepsize, self.k, self.traindataloader, self.batchsizetr, self.optimizer, self.criterion, self.classes, self.n_epoch, self.expid, self.checkepoch, c_1=self.c_1, c_2=self.c_2, lam=self.lam)
+        self.attacker = Attacker(self.eps, self.model, self.stepsize, self.optimizer, self.criterion, c_1=self.c_1, c_2=self.c_2, lam=self.lam)
         self.log['train_accuracy'] = []
         self.log['train_loss'] = []
         self.log['train_lambda'] = []

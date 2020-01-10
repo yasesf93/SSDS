@@ -5,7 +5,7 @@ from utils import progress_bar
 import torch
 import os
 import json
-from .BaseTrainer import BaseTrainer 
+from .BaseTester import BaseTester 
 from Attacker import Attacker
 
 with open('config.json') as config_file: # Reading the Config File 
@@ -13,9 +13,9 @@ with open('config.json') as config_file: # Reading the Config File
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-class RegTrainer(BaseTrainer):
-    def __init__(self, model, traindataloader, optimizer, criterion, classes, n_epoch, trainbatchsize, expid, checkepoch, pres, atmeth, **kwargs):
-        super().__init__(model, traindataloader, optimizer, criterion, classes, n_epoch, trainbatchsize, expid, checkepoch, pres, **kwargs)
+class RegTester(BaseTester):
+    def __init__(self, model, testdataloader, optimizer, criterion, classes, n_epoch, testbatchsize, expid, checkepoch, pres, atmeth, **kwargs):
+        super().__init__(model, testdataloader, optimizer, criterion, classes, n_epoch, testbatchsize, expid, checkepoch, pres, **kwargs)
         self.atmeth = atmeth
         self.pert = []
         self.best_acc = 0
@@ -25,9 +25,9 @@ class RegTrainer(BaseTrainer):
         self.stepsize = kwargs.get('stepsize')
         self.k = kwargs.get('k')
         
-    def train_minibatch(self, batch_idx):
+    def test_minibatch(self, batch_idx):
         attacker = Attacker(self.eps, self.model, self.stepsize, self.optimizer, self.criterion, nstep=self.nstep)
-        (I, _), targets = self.traindataloader[batch_idx]
+        (I, _), targets = self.testdataloader[batch_idx]
         I, targets = I.to(device), targets.to(device)
         targets = targets.long()
 
@@ -44,8 +44,6 @@ class RegTrainer(BaseTrainer):
         self.optimizer.zero_grad()
         outputs = self.model(I)
         loss = self.criterion(outputs, targets)
-        loss.backward()
-        self.optimizer.step()
         _,predicted = outputs.max(1)
         return loss.item(), predicted.eq(targets).sum().item(), targets.size(0)
 

@@ -14,31 +14,17 @@ with open('config.json') as config_file: # Reading the Config File
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 class Attacker(object):
-    def __init__(self, atmeth, eps, model, stepsize, k, traindataloader, batchsize, optimizer, criterion, classes, n_epoch, expid, checkepoch,  **kwargs):
-        self.atmeth = atmeth
+    def __init__(self, eps, model, stepsize, optimizer, criterion, **kwargs):
         self.eps = eps
         self.model = model
         self.stepsize = stepsize
-        self.k = k
-        self.traindataloader = traindataloader
-        self.batch_size = batchsize
         self.optimizer = optimizer
         self.criterion = criterion
-        self.classes = classes
-        self.batchsizetr = batchsize
-        self.best_acc = 0
-        self.startepoch = 0
-        self.n_epoch = n_epoch
-        self.expid = expid
-        self.log = {}
         self.c_1 = kwargs.get('c_1')
         self.c_2 = kwargs.get('c_2')
         self.lam = kwargs.get('lam')
         self.nstep = kwargs.get('nstep')
-        self.v = kwargs.get('v_scale')
-        ######## Updating the Logger ##########
-        self.log['training loss'] = []
-        self.log['training acc'] = []        
+        self.v = kwargs.get('v_scale')       
 
     ############################################### PGD ############################################
     def PGDattack(self, X_nat, y, Optimizer):
