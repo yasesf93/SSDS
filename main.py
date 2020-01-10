@@ -195,7 +195,7 @@ tr_model = torch.load('%s/checkpoint/ckpt.trainbest'%(expid))
 net.load_state_dict(tr_model['net'])
 print(tr_model['epoch'])
 print(tr_model['acc'])
-ts_acc_mat = []
+ts_acc_mat = {}
 
 for attack in ['REG', 'PGD', 'FGSM', 'SSDS','NOLAM', 'NOLAG']:
     atmeth = attack
@@ -208,14 +208,12 @@ for attack in ['REG', 'PGD', 'FGSM', 'SSDS','NOLAM', 'NOLAG']:
     if atmeth == 'PGD' or  atmeth == 'FGSM' or atmeth == 'REG' :
         tester = Testers.RegTester(net, testloader, optimizer, criterion, classes, n_ep_test, batchsizets, expid, checkepoch, pres, atmeth, epsilon=eps, nstep=nstep, stepsize=stepsize, k=k)
         test_accuracy = tester.test(epochs=n_ep_test, model=net)
-        ts_acc_mat.append(test_accuracy)
+        ts_acc_mat[attack] = test_accuracy
     elif atmeth == 'SSDS' or atmeth == 'NOLAG' or atmeth == 'NOLAM':
         tester = Testers.DelTester(net, testloader, optimizer, criterion, classes, n_ep_test, batchsizets, expid, checkepoch, pres, atmeth, v_ts, t, lam, c_1, c_2, eps, stepsize, k)
         test_accuracy = tester.test(epochs=n_ep_test, model=net)
-        ts_acc_mat.append(test_accuracy)
-ts_acc_mat.append(['REG', 'PGD', 'FGSM', 'SSDS','NOLAM', 'NOLAG'])
-#np.save('%s/testresults.txt'%(expid), ts_acc_mat)
-res = open('%s/testresults.txt'%(expid), 'wb') 
-res.write(ts_acc_mat)
-res.close()
+        ts_acc_mat[attack] = test_accuracy
+
+with open('%s/testresults.json'%(expid), 'w') as res:
+    json.dump(ts_acc_mat, res, indent=4)
 print(ts_acc_mat)
