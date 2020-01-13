@@ -10,6 +10,8 @@ import json
 from .BaseTrainer import BaseTrainer 
 from Attacker import Attacker
 from torch.autograd import Variable
+from Visualizations import PlotVal, PlotHist, PlotImg
+import numpy as np
 
 with open('config.json') as config_file: # Reading the Config File 
     config = json.load(config_file)
@@ -17,7 +19,7 @@ with open('config.json') as config_file: # Reading the Config File
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 class DelTrainer(BaseTrainer):
-    def __init__(self, model, traindataloader, optimizer, criterion, classes, n_epoch, trainbatchsize, expid, checkepoch, pres, stepsize, k, atmeth, v, t, lam, c_1, c_2, eps, **kwargs):
+    def __init__(self, model, traindataloader, optimizer, criterion, classes, n_epoch, trainbatchsize, expid, checkepoch, pres, stepsize, k, atmeth, v, t, lam, c_1, c_2, eps, dataname, **kwargs):
         super().__init__(model, traindataloader, optimizer, criterion, classes, n_epoch, trainbatchsize, expid, checkepoch, pres, stepsize, k, **kwargs)
         self.atmeth = atmeth
         self.v = v
@@ -28,17 +30,20 @@ class DelTrainer(BaseTrainer):
         self.best_acc = 0
         self.startepoch = 0
         self.eps = eps
+        self.dataname = dataname
         self.differ = torch.zeros(self.traindataloader.dataset.delta.size())
         self.attacker = Attacker(self.eps, self.model, self.stepsize, self.optimizer, self.criterion, c_1=self.c_1, c_2=self.c_2, lam=self.lam)
+        
+        ################ logs ####################
         self.log['train_accuracy'] = []
         self.log['train_loss'] = []
         self.log['train_lambda'] = []
         self.log['train_t'] = []
+        self.log['fnorm'] = []
 
         self.log['train_spec_delt_val_log'] = {}
         self.log['train_spec_delt_val_log']['id'] = [40000,1,16,16] # a value that works for all the datasets
         self.log['train_spec_delt_val_log']['val'] = [self.traindataloader.dataset.delta[self.log['train_spec_delt_val_log']['id']]]
-
         self.log['train_spec_img_log'] = {}
         self.log['train_spec_img_log']['ids'] = [10, 15000, 49990] # a value that works for all the datasets
 
@@ -48,11 +53,11 @@ class DelTrainer(BaseTrainer):
 
         self.log['train_spec_img_log']['2normdiff'] = [[] for _ in range(len(self.log['train_spec_img_log']['ids']))]
         self.log['train_spec_img_log']['1normdiff'] = [[] for _ in range(len(self.log['train_spec_img_log']['ids']))]
-        
+
         self.log['train_img_vis_log'] = {}
         self.log['train_img_vis_log']['ids'] = [10, 15000, 49990, 100, 1000, 10000, 25000, 40000] # a value that works for all the datasets
         self.log['train_img_vis_log']['img_tuple'] = [[] for _ in range(len(self.log['train_img_vis_log']['ids']))]
-
+        
     def train_minibatch(self, batch_idx):
         
         (I,delta), targets = self.traindataloader[batch_idx]
@@ -89,6 +94,9 @@ class DelTrainer(BaseTrainer):
 
     def train_epoch(self, epoch):
         super(DelTrainer, self).train_epoch(epoch)       
+        self.log['fnorm'].append(torch.zeros(len(self.traindataloader.dataset),1))
+        for z in range (self.traindataloader.dataset.delta.shape[0]):
+            self.log['fnorm'][-1][z]=self.traindataloader.dataset.delta[z].norm(p=float("inf"))
 
         if self.atmeth is 'SSDS':
             self.log['train_t'].append(self.t)
@@ -117,3 +125,36 @@ class DelTrainer(BaseTrainer):
             print('v', self.v[15000].item())
         print('step-size', self.stepsize)
         print('L-2 norm of delta difference', self.differ[15000].norm(p=2).item())
+
+
+    def plot_log(self):
+        super(DelTrainer, self).plot_log()
+        if self.atmeth is 'SSDS':
+            PlotVal(self.log['train_lambda'], 'lambda', '%s.train_results/train_lambda.pdf'%(self.expid)) #plot lambda
+            PlotVal(self.log['train_t'], 't', '%s.train_results/train_t.pdf'%(self.expid)) #plot t
+        deltls = [delt[0, 0, 16, 16].item() for delt in self.log['train_spec_delt_val_log']['val']]
+        PlotVal(deltls, r'$\delta$', '%s.train_results/train_specific_delta_pixel.pdf'%(self.expid), hline=self.eps) #plot delta pixel
+        # PlotHist([self.log['fnorm'][1].numpy().flatten(), self.log['fnorm'][-1].numpy().flatten()], ['first', 'last'], 'fnorm',
+        #     '%s.train_results/fnorm_hist.pdf'%(self.expid), vline=self.eps)
+        
+        for idx, img_id in enumerate(self.log['train_spec_img_log']['ids']): #plot v, delta and delta difference for each image
+            PlotVal(self.log['train_spec_img_log']['infnormdelta'][idx], r'$|\delta|_{\infty}$', '%s.train_results/infnorm_delta_%s.pdf'%(self.expid, img_id), hline=self.eps)
+            PlotVal(self.log['train_spec_img_log']['2normdelt'][idx], r'$|\delta|_{2}$', '%s.train_results/2norm_delta_%s.pdf'%(self.expid, img_id))
+            PlotVal(self.log['train_spec_img_log']['2normdiff'][idx], r'$|\delta_{k+1} - \delta_{k}|_{2}$', '%s.train_results/2norm_diff_%s.pdf'%(self.expid, img_id))
+            PlotVal(self.log['train_spec_img_log']['1normdiff'][idx], r'$|\delta_{k+1} - \delta_{k}|$', '%s.train_results/1norm_diff_%s.pdf'%(self.expid, img_id))
+            if self.atmeth in ['NOLAM', 'SSDS']:
+                PlotVal(self.log['train_spec_img_log']['v'][idx], 'v', '%s.train_results/v_%s.pdf'%(self.expid, img_id), hline=1.0)  
+        
+
+        for idx, img_id in enumerate(self.log['train_img_vis_log']['ids']): #Plot Images
+            (I, delta), targets = self.log['train_img_vis_log']['img_tuple'][idx][-1]
+            pert = I + delta
+            pert = torch.clamp(pert,0,1)
+            pert = pert.unsqueeze(0)
+            pert = pert.to(device)
+            self.optimizer.zero_grad()
+            outputs = self.model(pert)
+            _, predicted = outputs.max(1)
+            PlotImg(I.squeeze().cpu().numpy(), delta.squeeze().cpu().numpy(), pert.squeeze().cpu().numpy(), self.classes[targets], self.classes[predicted],
+                '%s.train_results/img_%s.pdf'%(self.expid, img_id), self.dataname)
+        

@@ -6,6 +6,7 @@ import torch
 import os
 import json
 import numpy as np
+from Visualizations import PlotLoss,PlotAcc
 
 with open('config.json') as config_file: # Reading the Config File 
     config = json.load(config_file)
@@ -52,7 +53,7 @@ class BaseTrainer(object):
             correct += batch_correct
             loss_avg = train_loss/(i+1)
             progress_bar(i, len(self.traindataloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'% (loss_avg, 100.*correct/total, correct, total))    
-        if (epoch % self.checkepoch == 0) and (self.stepsize>0.0001):
+        if epoch != 0 and (epoch % self.checkepoch == 0) and (self.stepsize>0.0001):
             self.stepsize = self.stepsize*np.exp(-self.k*epoch)
         self.log['train_loss'].append(loss_avg)
         self.log['train_acc'].append(100.*correct/total)
@@ -89,6 +90,8 @@ class BaseTrainer(object):
             self.train_epoch(epoch) 
             if (epoch)%self.checkepoch == 0:
                 self.save_log(epoch)
+                self.plot_log()
+                
             print(self.log['train_acc'][epoch]-self.log['train_acc'][epoch-1]) 
             if epoch != 0 and 0<(self.log['train_acc'][epoch]-self.log['train_acc'][epoch-1]) < self.pres:
                 break
@@ -96,4 +99,12 @@ class BaseTrainer(object):
 
     def save_log(self, epoch):
         self.log['epoch'] = epoch
-        torch.save(self.log, '%s/checkpoint/trainlog.pkl'%(self.expid))
+        torch.save(self.log,'%s/checkpoint/trainlog.pkl'%(self.expid))
+    
+
+    def plot_log(self):
+        if not os.path.isdir('%s.train_results'%(self.expid)):
+            os.mkdir('%s.train_results'%(self.expid))
+        PlotLoss(self.log['train_loss'],'%s.train_results/TrainLoss.pdf'%(self.expid))
+        PlotAcc(self.log['train_acc'],'%s.train_results/TrainAcc.pdf'%(self.expid))
+    

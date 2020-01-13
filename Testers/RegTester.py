@@ -8,6 +8,7 @@ import json
 from .BaseTester import BaseTester 
 from Attacker import Attacker
 
+
 with open('config.json') as config_file: # Reading the Config File 
     config = json.load(config_file)
 
@@ -15,8 +16,7 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 class RegTester(BaseTester):
     def __init__(self, model, testdataloader, optimizer, criterion, classes, n_epoch, testbatchsize, expid, checkepoch, pres, atmeth, **kwargs):
-        super().__init__(model, testdataloader, optimizer, criterion, classes, n_epoch, testbatchsize, expid, checkepoch, pres, **kwargs)
-        self.atmeth = atmeth
+        super().__init__(model, testdataloader, optimizer, criterion, classes, n_epoch, testbatchsize, expid, checkepoch, pres, atmeth, **kwargs)
         self.pert = []
         self.best_acc = 0
         self.startepoch = 0

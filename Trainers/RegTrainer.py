@@ -47,4 +47,3 @@ class RegTrainer(BaseTrainer):
         self.optimizer.step()
         _,predicted = outputs.max(1)
         return loss.item(), predicted.eq(targets).sum().item(), targets.size(0)
-
