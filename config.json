@@ -1,6 +1,6 @@
 {
   "_comment": "===== DATASET CONFIGURATION =====",
-  "data_name": "MNIST",	"_comment": "====CIFAR10,IMAGENET,MNIST====",
+  "data_name": "CIFAR10",	"_comment": "====CIFAR10,IMAGENET,MNIST====",
 
 
 
@@ -10,7 +10,7 @@
   "random_seed": 451760341,
   "training_epochs": 1,
   "checkpoint_epochs": 100,
-  "training_batch_size": 128,
+  "training_batch_size": 32,
   "fixed_learning_rate": true,
   "learning_rate_training": 0.001,
   "weight_decay": 0.0002,
@@ -19,8 +19,8 @@
   "momentum": 0.9,
   "loss_function": "Xent",	"_comment":"Xent-CW-TRADES",
   "optimizer": "SGDMOM",				"_comment":"SGD,SGDMOM,SubOpt,SubOptMOM",
-  "model_architecture": "Simple",  		"_comment":"Resnet50,WResnet,Resnet18,Simple",
-  "transform": false,                            "_comment" : "should be true for IMAGENET" , 
+  "model_architecture": "Resnet50",  		"_comment":"Resnet50,WResnet,Resnet18,Simple",
+  "transform": true,                            "_comment" : "should be true for IMAGENET" , 
   "train" : true,
   "precision_bound" : 0.001,
   

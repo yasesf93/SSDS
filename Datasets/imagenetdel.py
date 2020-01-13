@@ -140,15 +140,18 @@ class ImageNet(torch_datasets.VisionDataset):
         if self.transform is not None:
             sample = self.transform(sample)
 
+        # try:
         if os.path.exists(os.path.join(basefolder,'deltas',file)):
             delta = self.trans(self.loader(os.path.join(basefolder,'deltas',file)))
         else:
             delta = torch.zeros_like(sample)
+        # except OSError:
+        #     delta = torch.zeros_like(sample)
         if self.target_transform is not None:
             target = self.target_transform(target)
         return (sample, delta), target
 
-    def set_delta(self, index, delta):
+    def __setitem__(self, index, delta):
         path, target = self.samples[index]
         folder, file = os.path.split(path)
         basefolder, _ = os.path.split(folder)
@@ -159,6 +162,7 @@ class ImageNet(torch_datasets.VisionDataset):
         delta_img = self.invtrans(delta.cpu())
         if not os.path.exists(os.path.join(basefolder,'deltas')):
             os.makedirs(os.path.join(basefolder,'deltas'))
+        # print(file)
         delta_img.save(os.path.join(basefolder,'deltas',file))
 
 

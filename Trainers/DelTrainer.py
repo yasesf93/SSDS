@@ -31,7 +31,6 @@ class DelTrainer(BaseTrainer):
         self.startepoch = 0
         self.eps = eps
         self.dataname = dataname
-        self.differ = torch.zeros(self.traindataloader.dataset.delta.size())
         self.attacker = Attacker(self.eps, self.model, self.stepsize, self.optimizer, self.criterion, c_1=self.c_1, c_2=self.c_2, lam=self.lam)
         
         ################ logs ####################
@@ -43,10 +42,13 @@ class DelTrainer(BaseTrainer):
 
         self.log['train_spec_delt_val_log'] = {}
         self.log['train_spec_delt_val_log']['id'] = [40000,1,16,16] # a value that works for all the datasets
-        self.log['train_spec_delt_val_log']['val'] = [self.traindataloader.dataset.delta[self.log['train_spec_delt_val_log']['id']]]
+        self.log['train_spec_delt_val_log']['val'] = [self.traindataloader.dataset[self.log['train_spec_delt_val_log']['id'][0]][1]]
+
         self.log['train_spec_img_log'] = {}
         self.log['train_spec_img_log']['ids'] = [10, 15000, 49990] # a value that works for all the datasets
 
+        
+        self.log['train_spec_img_log']['differ'] = {idx:[] for idx in self.log['train_spec_img_log']['ids']}
         self.log['train_spec_img_log']['v'] = [[] for _ in range(len(self.log['train_spec_img_log']['ids']))]
         self.log['train_spec_img_log']['infnormdelta'] = [[] for _ in range(len(self.log['train_spec_img_log']['ids']))]
         self.log['train_spec_img_log']['2normdelt'] = [[] for _ in range(len(self.log['train_spec_img_log']['ids']))]
@@ -59,14 +61,13 @@ class DelTrainer(BaseTrainer):
         self.log['train_img_vis_log']['img_tuple'] = [[] for _ in range(len(self.log['train_img_vis_log']['ids']))]
         
     def train_minibatch(self, batch_idx):
-        
-        (I,delta), targets = self.traindataloader[batch_idx]
+        (I, delta), targets = self.traindataloader[batch_idx]
         I, targets = I.to(device), targets.to(device)
         targets = targets.long()
-        delta = Variable(delta.to(device), requires_grad = True)
+        delta = delta.to(device)
+        delta = Variable(delta, requires_grad = True)
         indexes = self.traindataloader.indexes[batch_idx*self.batchsizetr:(batch_idx+1)*self.batchsizetr]
-        self.v = self.v.to(device)
-        v_batch = self.v[indexes].squeeze()
+        v_batch = self.v[indexes].squeeze().to(device)
         if self.atmeth == 'SSDS':
             X, new_delta, new_v, new_lam, new_t = self.attacker.SSDSattack(I, targets, delta, v_batch, self.t, self.lam, self.optimizer)
             self.lam = new_lam
@@ -84,11 +85,15 @@ class DelTrainer(BaseTrainer):
             self.optimizer.step(self.lam)
         else:
             self.optimizer.step()        
-        _,predicted = outputs.max(1)
-        self.differ[indexes] = (new_delta - self.traindataloader.dataset.delta[indexes].cpu())
-        self.traindataloader.dataset.delta[indexes] = new_delta
+        _, predicted = outputs.max(1)
+
+        for i, idx in enumerate(indexes):
+            if idx in self.log['train_spec_img_log']['ids']:
+                self.log['train_spec_img_log']['differ'][idx].append((new_delta[i].detach().cpu() - delta[i].detach().cpu()))
+            self.traindataloader.dataset[idx] = new_delta[i]
         if self.atmeth == 'SSDS' or self.atmeth == 'NOLAM':
-            self.v[indexes] = new_v.unsqueeze(1)
+            self.v[indexes] = new_v.unsqueeze(1).detach().cpu()
+        del new_delta, X
         return loss.item(), predicted.eq(targets).sum().item(), targets.size(0)
 
 
@@ -105,10 +110,10 @@ class DelTrainer(BaseTrainer):
         self.log['train_spec_delt_val_log']['val'].append(self.traindataloader.dataset.delta[self.log['train_spec_delt_val_log']['id']])
 
         for idx, img_id in enumerate(self.log['train_spec_img_log']['ids']):
-            self.log['train_spec_img_log']['infnormdelta'][idx].append(self.traindataloader.dataset.delta[img_id].norm(p=float("inf")).item())
-            self.log['train_spec_img_log']['2normdelt'][idx].append(self.traindataloader.dataset.delta[img_id].norm(p=2).item())
-            self.log['train_spec_img_log']['2normdiff'][idx].append(self.differ[img_id].norm(p=2).item())
-            self.log['train_spec_img_log']['1normdiff'][idx].append(self.differ[img_id].norm(p=1).item())
+            self.log['train_spec_img_log']['infnormdelta'][idx].append(self.traindataloader.dataset[img_id][0][1].norm(p=float("inf")).item())
+            self.log['train_spec_img_log']['2normdelt'][idx].append(self.traindataloader.dataset[img_id][0][1].norm(p=2).item())
+            self.log['train_spec_img_log']['2normdiff'][idx].append(self.log['train_spec_img_log']['differ'][img_id][-1].norm(p=2).item())
+            self.log['train_spec_img_log']['1normdiff'][idx].append(self.log['train_spec_img_log']['differ'][img_id][-1].norm(p=1).item())
             if self.atmeth in ['NOLAM', 'SSDS']:
                 self.log['train_spec_img_log']['v'][idx].append(self.v[img_id].item())
 
@@ -118,13 +123,13 @@ class DelTrainer(BaseTrainer):
         
         #print functions
         print('attack method', self.atmeth)
-        print('infinity norm of delta value', self.traindataloader.dataset.delta[15000].norm(p=float("inf")).item())
+        print('infinity norm of delta value', self.traindataloader.dataset[15000][0][1].norm(p=float("inf")).item())
         if self.atmeth is 'SSDS':
             print('lambda', self.lam)
         if self.atmeth in ['NOLAM', 'SSDS']:
             print('v', self.v[15000].item())
         print('step-size', self.stepsize)
-        print('L-2 norm of delta difference', self.differ[15000].norm(p=2).item())
+        print('L-2 norm of delta difference', self.log['train_spec_img_log']['differ'][15000][-1].norm(p=2).item())
 
 
     def plot_log(self):

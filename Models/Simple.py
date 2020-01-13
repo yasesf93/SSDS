@@ -45,11 +45,11 @@ class Net_binary(nn.Module):
         return x
 
 class SmallCNN(nn.Module):
-    def __init__(self, drop=0.5):
+    def __init__(self, drop=0.5, num_classes = 10, num_channels=1):
         super(SmallCNN, self).__init__()
 
-        self.num_channels = 1
-        self.num_labels = 10
+        self.num_channels = num_channels
+        self.num_labels = num_classes
 
         activ = nn.ReLU(True)
 
