@@ -118,14 +118,20 @@ if dataname == "CIFAR10":
         testset = Datasets.cifar10clean(root='./data', train=False, download=True, transform=transform_test)
         testloader = Dataloaders.CleanDataLoader(testset, batch_size=batchsizets, shuffle=True) 
     classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+    num_channels = 3
 
 if dataname == "IMAGENET":
-    data_dir = 'Datasets.tiny-224/'
+    data_dir = '/data/tiny-imagenet-200/'
     image_datasets = {x: Datasets.ImageNet(os.path.join(data_dir, x), data_transforms[x]) 
                   for x in ['train', 'val','test']}
-    dataloaders = {x: Dataloaders.DelDataLoaderIMG(image_datasets[x], batch_size=batch_sizetr, shuffle=True)
+    dataloaders = {x: Dataloaders.DelDataLoaderIMG(image_datasets[x], batch_size=batchsizetr, shuffle=True)
                   for x in ['train', 'val', 'test']}
     dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val', 'test']}
+    v_tr = v_scale*torch.ones(len(image_datasets['train']), 1)     
+    classes = image_datasets['train'].classes
+    trainloader = dataloaders['train']
+    testloader = dataloaders['test']
+    num_channels = 3
 
 if dataname == "MNIST":
     trainset = Datasets.MNISTdel(root='./data', train=True, download=True, transform=transform_train)
@@ -135,22 +141,22 @@ if dataname == "MNIST":
     testloader = Dataloaders.DelDataLoader(testset, batch_size=batchsizets, shuffle=True)
     v_ts = v_scale*torch.ones(testloader.dataset.delta.shape[0], 1).to(device)     
     classes = ['0 - zero', '1 - one', '2 - two', '3 - three', '4 - four', '5 - five', '6 - six', '7 - seven', '8 - eight', '9 - nine']
-
+    num_channels = 1
 
 ######################################################## Models ########################################
 
 
 if model =="Resnet50":
-    net = Models.ResNet50()
+    net = Models.ResNet50(num_classes=len(classes), num_channels=num_channels)
 
 if model =="Resnet18":
-    net = Models.ResNet18()
+    net = Models.ResNet18(num_classes=len(classes), num_channels=num_channels)
 
 if model == "WResnet":
-    net = Models.WideResNet()
+    net = Models.WideResNet(num_classes=len(classes), num_channels=num_channels)
 
 if model == "Simple":
-    net = Models.SmallCNN()
+    net = Models.SmallCNN(num_classes=len(classes), num_channels=num_channels)
 
 net = net.to(device)
 

@@ -28,7 +28,7 @@ class DelTrainer(BaseTrainer):
         self.best_acc = 0
         self.startepoch = 0
         self.eps = eps
-        self.differ = torch.zeros(self.traindataloader.dataset.delta.size())
+        # self.differ = torch.zeros(self.traindataloader.dataset.delta.size())
         self.attacker = Attacker(self.eps, self.model, self.stepsize, self.optimizer, self.criterion, c_1=self.c_1, c_2=self.c_2, lam=self.lam)
         self.log['train_accuracy'] = []
         self.log['train_loss'] = []
@@ -37,7 +37,7 @@ class DelTrainer(BaseTrainer):
 
         self.log['train_spec_delt_val_log'] = {}
         self.log['train_spec_delt_val_log']['id'] = [40000,1,16,16] # a value that works for all the datasets
-        self.log['train_spec_delt_val_log']['val'] = [self.traindataloader.dataset.delta[self.log['train_spec_delt_val_log']['id']]]
+        self.log['train_spec_delt_val_log']['val'] = [self.traindataloader.dataset[self.log['train_spec_delt_val_log']['id'][0]][1]]
 
         self.log['train_spec_img_log'] = {}
         self.log['train_spec_img_log']['ids'] = [10, 15000, 49990] # a value that works for all the datasets
@@ -54,14 +54,13 @@ class DelTrainer(BaseTrainer):
         self.log['train_img_vis_log']['img_tuple'] = [[] for _ in range(len(self.log['train_img_vis_log']['ids']))]
 
     def train_minibatch(self, batch_idx):
-        
-        (I,delta), targets = self.traindataloader[batch_idx]
+        (I, delta), targets = self.traindataloader[batch_idx]
         I, targets = I.to(device), targets.to(device)
         targets = targets.long()
-        delta = Variable(delta.to(device), requires_grad = True)
+        delta = delta.to(device)
+        delta = Variable(delta, requires_grad = True)
         indexes = self.traindataloader.indexes[batch_idx*self.batchsizetr:(batch_idx+1)*self.batchsizetr]
-        self.v = self.v.to(device)
-        v_batch = self.v[indexes].squeeze()
+        v_batch = self.v[indexes].squeeze().to(device)
         if self.atmeth == 'SSDS':
             X, new_delta, new_v, new_lam, new_t = self.attacker.SSDSattack(I, targets, delta, v_batch, self.t, self.lam, self.optimizer)
             self.lam = new_lam
@@ -79,11 +78,14 @@ class DelTrainer(BaseTrainer):
             self.optimizer.step(self.lam)
         else:
             self.optimizer.step()        
-        _,predicted = outputs.max(1)
-        self.differ[indexes] = (new_delta - self.traindataloader.dataset.delta[indexes].cpu())
-        self.traindataloader.dataset.delta[indexes] = new_delta
+        _, predicted = outputs.max(1)
+        # print(indexes)
+        # self.differ[indexes] = (new_delta - self.traindataloader.dataset[indexes][1].cpu())
+        for i, idx in enumerate(indexes):
+            self.traindataloader.dataset[idx] = new_delta[i]
         if self.atmeth == 'SSDS' or self.atmeth == 'NOLAM':
-            self.v[indexes] = new_v.unsqueeze(1)
+            self.v[indexes] = new_v.unsqueeze(1).detach().cpu()
+        del new_delta, X, 
         return loss.item(), predicted.eq(targets).sum().item(), targets.size(0)
 
 

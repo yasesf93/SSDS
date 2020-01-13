@@ -13,7 +13,7 @@ np.random.seed(seed_num)
 class DelDataLoaderIMG(DelDataLoader):
     """docstring for DataLoader"""
     def __init__(self, dataset, batch_size, shuffle=True):
-        super(DelDataLoader, self).__init__()
+        super(DelDataLoader, self).__init__(dataset, batch_size)
         self.dataset = dataset
         self.batch_size = batch_size
         self.shuffle = shuffle
