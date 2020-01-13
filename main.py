@@ -158,7 +158,7 @@ if model == "WResnet":
 if model == "Simple":
     net = Models.SmallCNN(num_classes=len(classes), num_channels=num_channels)
 
-net = net.to(device)
+net = nn.DataParallel(net.to(device))
 
 ######################################################## Loss Function ########################################
 

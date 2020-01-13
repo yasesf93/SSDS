@@ -72,11 +72,17 @@ class MNISTdel(data.Dataset):
         if self.target_transform is not None:
             target = self.target_transform(target)
         return ((img,delta), target)
+
     def __len__(self):
         if self.train:
             return len(self.train_data)
         else:
             return len(self.test_data)
+
+    def __setitem__(self, index, delta):
+        self.delta[index] = delta
+
+
     def _check_exists(self):
         return os.path.exists(os.path.join(self.root, self.processed_folder, self.training_file)) and \
             os.path.exists(os.path.join(self.root, self.processed_folder, self.test_file))

@@ -132,6 +132,9 @@ class CIFAR10del(data.Dataset):
     def __len__(self):
         return len(self.data)
 
+    def __setitem__(self, index, delta):
+        self.delta[index] = delta
+
     def _check_integrity(self):
         root = self.root
         for fentry in (self.train_list + self.test_list):
