@@ -79,7 +79,7 @@ class DelTrainer(BaseTrainer):
         targets = targets.long()
         loss = self.criterion(outputs, targets)
         loss.backward()
-        if self.optimizer == 'SubOpt':
+        if self.atmeth == 'SSDS':
             self.optimizer.step(self.lam)
         else:
             self.optimizer.step()        
