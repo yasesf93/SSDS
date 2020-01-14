@@ -12,9 +12,10 @@ from Attacker import Attacker
 from torch.autograd import Variable
 from Visualizations import PlotVal, PlotHist, PlotImg
 import numpy as np
+from Optimizers.SubOpt import SubOpt
 
-with open('config.json') as config_file: # Reading the Config File 
-    config = json.load(config_file)
+#with open('config.json') as config_file: # Reading the Config File 
+#    config = json.load(config_file)
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -77,7 +78,7 @@ class DelTrainer(BaseTrainer):
         targets = targets.long()
         loss = self.criterion(outputs, targets)
         loss.backward()
-        if self.atmeth == 'SSDS':
+        if isinstance(self.optimizer, SubOpt):
             self.optimizer.step(self.lam)
         else:
             self.optimizer.step()        

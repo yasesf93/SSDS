@@ -3,11 +3,11 @@ import torch
 import json
 from .dataloaderclean import CleanDataLoader 
 
-with open('config.json') as config_file: # Reading the Config File 
-    config = json.load(config_file)
-
-seed_num = config['random_seed']
-np.random.seed(seed_num)
+#with open('config.json') as config_file: # Reading the Config File 
+#    config = json.load(config_file)
+#import __main__
+#seed_num = __main__.config['random_seed']
+#np.random.seed(seed_num)
 
 
 class DelDataLoader(CleanDataLoader):
