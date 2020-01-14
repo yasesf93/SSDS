@@ -66,6 +66,8 @@ class BaseTester(object):
                 self.plot_log()
 
             if epoch != 0 and 0<(self.ts_acc_ls[epoch]-self.ts_acc_ls[epoch-1]) < self.pres:
+                self.save_log(epoch)
+                self.plot_log()
                 break
         return self.test_acc
 
@@ -75,6 +77,6 @@ class BaseTester(object):
         torch.save(self.log, '%s/checkpoint/testlog.pkl'%(self.expid))
 
     def plot_log(self):
-        if not os.path.isdir('%s.test_results'%(self.expid)):
-            os.mkdir('%s.test_results'%(self.expid))
-        PlotAcc(self.ts_acc_ls,'%s.test_results/TestAcc.pdf'%(self.expid))
+        if not os.path.isdir('%s/test_results'%(self.expid)):
+            os.mkdir('%s/test_results'%(self.expid))
+        PlotAcc(self.ts_acc_ls,'%s/test_results/TestAcc.pdf'%(self.expid))

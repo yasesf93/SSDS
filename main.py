@@ -216,7 +216,7 @@ for attack in ['REG', 'PGD', 'FGSM', 'SSDS','NOLAM', 'NOLAG']:
         test_accuracy = tester.test(epochs=n_ep_test, model=net)
         ts_acc_mat[attack] = test_accuracy
     elif atmeth == 'SSDS' or atmeth == 'NOLAG' or atmeth == 'NOLAM':
-        tester = Testers.DelTester(net, testloader, optimizer, criterion, classes, n_ep_test, batchsizets, expid, checkepoch, pres, atmeth, v_ts, t, lam, c_1, c_2, eps, stepsize, k)
+        tester = Testers.DelTester(net, testloader, optimizer, criterion, classes, n_ep_test, batchsizets, expid, checkepoch, pres, atmeth, v_ts, t, lam, c_1, c_2, eps, stepsize, k, dataname)
         test_accuracy = tester.test(epochs=n_ep_test, model=net)
         ts_acc_mat[attack] = test_accuracy
 

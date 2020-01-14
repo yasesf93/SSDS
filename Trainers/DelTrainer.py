@@ -38,7 +38,6 @@ class DelTrainer(BaseTrainer):
         self.log['train_loss'] = []
         self.log['train_lambda'] = []
         self.log['train_t'] = []
-        self.log['fnorm'] = []
 
         self.log['train_spec_delt_val_log'] = {}
         self.log['train_spec_delt_val_log']['id'] = [40000,1,16,16] # a value that works for all the datasets
@@ -52,7 +51,6 @@ class DelTrainer(BaseTrainer):
         self.log['train_spec_img_log']['v'] = [[] for _ in range(len(self.log['train_spec_img_log']['ids']))]
         self.log['train_spec_img_log']['infnormdelta'] = [[] for _ in range(len(self.log['train_spec_img_log']['ids']))]
         self.log['train_spec_img_log']['2normdelt'] = [[] for _ in range(len(self.log['train_spec_img_log']['ids']))]
-
         self.log['train_spec_img_log']['2normdiff'] = [[] for _ in range(len(self.log['train_spec_img_log']['ids']))]
         self.log['train_spec_img_log']['1normdiff'] = [[] for _ in range(len(self.log['train_spec_img_log']['ids']))]
 
@@ -98,16 +96,12 @@ class DelTrainer(BaseTrainer):
 
 
     def train_epoch(self, epoch):
-        super(DelTrainer, self).train_epoch(epoch)       
-        self.log['fnorm'].append(torch.zeros(len(self.traindataloader.dataset),1))
-        for z in range (self.traindataloader.dataset.delta.shape[0]):
-            self.log['fnorm'][-1][z]=self.traindataloader.dataset.delta[z].norm(p=float("inf"))
-
+        super(DelTrainer, self).train_epoch(epoch)      
         if self.atmeth is 'SSDS':
             self.log['train_t'].append(self.t)
             self.log['train_lambda'].append(self.lam)
 
-        self.log['train_spec_delt_val_log']['val'].append(self.traindataloader.dataset.delta[self.log['train_spec_delt_val_log']['id']])
+        self.log['train_spec_delt_val_log']['val'].append(self.traindataloader.dataset[self.log['train_spec_delt_val_log']['id'][0]][1])
 
         for idx, img_id in enumerate(self.log['train_spec_img_log']['ids']):
             self.log['train_spec_img_log']['infnormdelta'][idx].append(self.traindataloader.dataset[img_id][0][1].norm(p=float("inf")).item())
@@ -130,25 +124,22 @@ class DelTrainer(BaseTrainer):
             print('v', self.v[15000].item())
         print('step-size', self.stepsize)
         print('L-2 norm of delta difference', self.log['train_spec_img_log']['differ'][15000][-1].norm(p=2).item())
-
+        print('specific delta pixel', self.log['train_spec_delt_val_log']['val'][-1])
 
     def plot_log(self):
         super(DelTrainer, self).plot_log()
         if self.atmeth is 'SSDS':
-            PlotVal(self.log['train_lambda'], 'lambda', '%s.train_results/train_lambda.pdf'%(self.expid)) #plot lambda
-            PlotVal(self.log['train_t'], 't', '%s.train_results/train_t.pdf'%(self.expid)) #plot t
-        deltls = [delt[0, 0, 16, 16].item() for delt in self.log['train_spec_delt_val_log']['val']]
-        PlotVal(deltls, r'$\delta$', '%s.train_results/train_specific_delta_pixel.pdf'%(self.expid), hline=self.eps) #plot delta pixel
-        # PlotHist([self.log['fnorm'][1].numpy().flatten(), self.log['fnorm'][-1].numpy().flatten()], ['first', 'last'], 'fnorm',
-        #     '%s.train_results/fnorm_hist.pdf'%(self.expid), vline=self.eps)
+            PlotVal(self.log['train_lambda'], 'lambda', '%s/train_results/train_lambda.pdf'%(self.expid)) #plot lambda
+            PlotVal(self.log['train_t'], 't', '%s/train_results/train_t.pdf'%(self.expid)) #plot t
+        PlotVal(self.log['train_spec_delt_val_log']['val'], r'$\delta$', '%s/train_results/train_specific_delta_pixel.pdf'%(self.expid), hline=self.eps) #plot delta pixel
         
         for idx, img_id in enumerate(self.log['train_spec_img_log']['ids']): #plot v, delta and delta difference for each image
-            PlotVal(self.log['train_spec_img_log']['infnormdelta'][idx], r'$|\delta|_{\infty}$', '%s.train_results/infnorm_delta_%s.pdf'%(self.expid, img_id), hline=self.eps)
-            PlotVal(self.log['train_spec_img_log']['2normdelt'][idx], r'$|\delta|_{2}$', '%s.train_results/2norm_delta_%s.pdf'%(self.expid, img_id))
-            PlotVal(self.log['train_spec_img_log']['2normdiff'][idx], r'$|\delta_{k+1} - \delta_{k}|_{2}$', '%s.train_results/2norm_diff_%s.pdf'%(self.expid, img_id))
-            PlotVal(self.log['train_spec_img_log']['1normdiff'][idx], r'$|\delta_{k+1} - \delta_{k}|$', '%s.train_results/1norm_diff_%s.pdf'%(self.expid, img_id))
+            PlotVal(self.log['train_spec_img_log']['infnormdelta'][idx], r'$|\delta|_{\infty}$', '%s/train_results/infnorm_delta_%s.pdf'%(self.expid, img_id), hline=self.eps)
+            PlotVal(self.log['train_spec_img_log']['2normdelt'][idx], r'$|\delta|_{2}$', '%s/train_results/2norm_delta_%s.pdf'%(self.expid, img_id))
+            PlotVal(self.log['train_spec_img_log']['2normdiff'][idx], r'$|\delta_{k+1} - \delta_{k}|_{2}$', '%s/train_results/2norm_diff_%s.pdf'%(self.expid, img_id))
+            PlotVal(self.log['train_spec_img_log']['1normdiff'][idx], r'$|\delta_{k+1} - \delta_{k}|$', '%s/train_results/1norm_diff_%s.pdf'%(self.expid, img_id))
             if self.atmeth in ['NOLAM', 'SSDS']:
-                PlotVal(self.log['train_spec_img_log']['v'][idx], 'v', '%s.train_results/v_%s.pdf'%(self.expid, img_id), hline=1.0)  
+                PlotVal(self.log['train_spec_img_log']['v'][idx], 'v', '%s/train_results/v_%s.pdf'%(self.expid, img_id), hline=1.0)  
         
 
         for idx, img_id in enumerate(self.log['train_img_vis_log']['ids']): #Plot Images
@@ -161,5 +152,5 @@ class DelTrainer(BaseTrainer):
             outputs = self.model(pert)
             _, predicted = outputs.max(1)
             PlotImg(I.squeeze().cpu().numpy(), delta.squeeze().cpu().numpy(), pert.squeeze().cpu().numpy(), self.classes[targets], self.classes[predicted],
-                '%s.train_results/img_%s.pdf'%(self.expid, img_id), self.dataname)
+                '%s/train_results/img_%s.pdf'%(self.expid, img_id), self.dataname)
         

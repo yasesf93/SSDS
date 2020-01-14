@@ -92,8 +92,9 @@ class BaseTrainer(object):
                 self.save_log(epoch)
                 self.plot_log()
                 
-            print(self.log['train_acc'][epoch]-self.log['train_acc'][epoch-1]) 
             if epoch != 0 and 0<(self.log['train_acc'][epoch]-self.log['train_acc'][epoch-1]) < self.pres:
+                self.save_log(epoch)
+                self.plot_log()
                 break
 
 
@@ -103,8 +104,8 @@ class BaseTrainer(object):
     
 
     def plot_log(self):
-        if not os.path.isdir('%s.train_results'%(self.expid)):
-            os.mkdir('%s.train_results'%(self.expid))
-        PlotLoss(self.log['train_loss'],'%s.train_results/TrainLoss.pdf'%(self.expid))
-        PlotAcc(self.log['train_acc'],'%s.train_results/TrainAcc.pdf'%(self.expid))
+        if not os.path.isdir('%s/train_results'%(self.expid)):
+            os.mkdir('%s/train_results'%(self.expid))
+        PlotLoss(self.log['train_loss'],'%s/train_results/TrainLoss.pdf'%(self.expid))
+        PlotAcc(self.log['train_acc'],'%s/train_results/TrainAcc.pdf'%(self.expid))
     

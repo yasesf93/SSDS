@@ -288,20 +288,20 @@ def PlotHist(vals, valnames, valtype, filename='histogram.pdf', vline=None):
 
 def PlotImg(I, delta, Pert, target, prediction, filename, dataname):
     if dataname == 'CIFAR10':
-        I, delta , Pert = I.transpose((1,2,0)), delta.transpose((1,2,0)), Pert.transpose((1,2,0)))
+        I, delta , Pert = I.transpose((1,2,0)), delta.transpose((1,2,0)), Pert.transpose((1,2,0))
 
     plt.figure()
     ax1 = plt.subplot(1,3,1, frame_on=False)
     ax1.set_axis_off()
-    plt.imshow(I.transpose((1,2,0)),interpolation='nearest')
+    plt.imshow(I,interpolation='nearest')
     plt.title('true: %s' % (target))
     ax2 = plt.subplot(1,3,2, frame_on=False)
     ax2.set_axis_off()
     delta = delta/delta.max()
-    plt.imshow(delta.transpose((1,2,0)),interpolation='nearest')
+    plt.imshow(delta,interpolation='nearest')
     ax3 = plt.subplot(1,3,3, frame_on=False)
     ax3.set_axis_off()
-    plt.imshow(Pert.transpose((1,2,0)),interpolation='nearest')
+    plt.imshow(Pert,interpolation='nearest')
     plt.title('adv: %s'%(prediction))
     plt.tight_layout()
     plt.savefig(filename)
