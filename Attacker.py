@@ -14,17 +14,16 @@ with open('config.json') as config_file: # Reading the Config File
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 class Attacker(object):
-    def __init__(self, eps, model, stepsize, optimizer, criterion, **kwargs):
+    def __init__(self, eps, model, stepsize, optimizer, criterion,c_1,c_2,nstep,dataname):
         self.eps = eps
         self.model = model
         self.stepsize = stepsize
         self.optimizer = optimizer
         self.criterion = criterion
-        self.c_1 = kwargs.get('c_1')
-        self.c_2 = kwargs.get('c_2')
-        self.lam = kwargs.get('lam')
-        self.nstep = kwargs.get('nstep')
-        self.v = kwargs.get('v_scale')       
+        self.c_1 = c_1
+        self.c_2 = c_2
+        self.nstep = nstep
+        self.dataname = dataname
 
     ############################################### PGD ############################################
     def PGDattack(self, X_nat, y, Optimizer):
@@ -65,8 +64,17 @@ class Attacker(object):
     def SSDSattack(self, X_nat, y, delta, v, t, lam, Optimizer):
         #it gets v and delta for batch as inputs
         Optimizer.zero_grad()
-        pert = X_nat+delta
+        if self.dataname == 'MNIST':
+            rand_i = torch.from_numpy(np.random.uniform(low=-self.eps*0.9, high=self.eps*0.9, size=X_nat.size())).to(device) 
+            rand_i = rand_i.float()
+            pert = X_nat + rand_i
+            pert = pert+delta
+            pert = torch.where(pert>X_nat+self.eps,X_nat+self.eps,pert)
+            pert = torch.where(pert<X_nat-self.eps,X_nat-self.eps,pert)
+        else:
+            pert = X_nat+delta
         pert = torch.clamp(pert,0,1)
+        randpert = pert-X_nat
         outputs = self.model(pert) 
         loss = self.criterion(outputs,y)
         loss.backward()
@@ -93,13 +101,22 @@ class Attacker(object):
         else:
             lam = lam+normlam
         
-        return pert.detach(), new_delta,  v, lam, t 
+        return pert.detach(), pert-X_nat.detach(), new_delta,  v, lam, t 
 
     ############################################### NOLAM ############################################
     def NOLAMattack(self, X_nat, y, delta, v, Optimizer):
         #it gets v and delta for batch as inputs
-        pert = X_nat+delta
+        if self.dataname == 'MNIST':
+            rand_i = torch.from_numpy(np.random.uniform(low=-self.eps*0.9, high=self.eps*0.9, size=X_nat.size())).to(device) 
+            rand_i = rand_i.float()
+            pert = X_nat + rand_i
+            pert = pert+delta
+            pert = torch.where(pert>X_nat+self.eps,X_nat+self.eps,pert)
+            pert = torch.where(pert<X_nat-self.eps,X_nat-self.eps,pert)
+        else:
+            pert = X_nat+delta
         pert = torch.clamp(pert,0,1)
+        randpert = pert-X_nat
         Optimizer.zero_grad()
         outputs = self.model(pert) 
         loss = self.criterion(outputs,y)
@@ -117,13 +134,22 @@ class Attacker(object):
         new_v[v+normcheck>=0] = v[v+normcheck>=0] + normcheck[v+normcheck>=0]
         v = new_v
 
-        return pert.detach(), new_delta, v
+        return pert.detach(), pert-X_nat.detach(), new_delta, v
 
     ############################################### NOLAG ############################################
     def NOLAGattack(self, X_nat, y, delta, Optimizer):
         #it gets v and delta for batch as inputs
-        pert = X_nat+delta
+        if self.dataname == 'MNIST':
+            rand_i = torch.from_numpy(np.random.uniform(low=-self.eps*0.9, high=self.eps*0.9, size=X_nat.size())).to(device) 
+            rand_i = rand_i.float()
+            pert = X_nat + rand_i
+            pert = pert+delta
+            pert = torch.where(pert>X_nat+self.eps,X_nat+self.eps,pert)
+            pert = torch.where(pert<X_nat-self.eps,X_nat-self.eps,pert)
+        else:
+            pert = X_nat+delta
         pert = torch.clamp(pert,0,1)
+        randpert = pert-X_nat
         Optimizer.zero_grad()
         outputs = self.model(pert) 
         loss = self.criterion(outputs,y)
@@ -133,4 +159,4 @@ class Attacker(object):
         new_delta = (delta + self.stepsize*(grad)).detach().cpu()
         new_delta = torch.clamp(new_delta,-self.eps,self.eps)
         
-        return pert.detach(), new_delta
+        return pert.detach(), pert-X_nat.detach(), new_delta

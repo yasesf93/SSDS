@@ -5,6 +5,7 @@ from utils import progress_bar
 import torch
 import os
 import json
+import numpy as np
 from Visualizations import PlotLoss,PlotAcc
 
 with open('config.json') as config_file: # Reading the Config File 
@@ -13,7 +14,7 @@ with open('config.json') as config_file: # Reading the Config File
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 class BaseTester(object):
-    def __init__(self, model, testdataloader, optimizer, criterion, classes, n_epoch, testbatchsize, expid, checkepoch, pres, atmeth, **kwargs):
+    def __init__(self, model, testdataloader, optimizer, criterion, classes, n_epoch, testbatchsize, expid, checkepoch, pres, stepsize, k, atmeth, c_1, c_2, eps, dataname, nstep, **kwargs):
         self.model = model
         self.testdataloader = testdataloader
         self.optimizer = optimizer
@@ -26,7 +27,14 @@ class BaseTester(object):
         self.expid = expid
         self.checkepoch = checkepoch
         self.pres = pres
+        self.stepsize = stepsize
+        self.k = k
         self.atmeth = atmeth
+        self.c_1 = c_1
+        self.c_2 = c_2   
+        self.eps = eps
+        self.dataname = dataname
+        self.nstep = nstep  
         self.log = {}
         self.log['test_acc'] = []   
         self.ts_acc_ls = []
