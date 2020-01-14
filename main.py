@@ -14,8 +14,15 @@ import Models
 import Optimizers
 from Loss.trades import trades_loss
 import Testers
+import argparse 
 
-with open('config.json') as config_file: # Reading the Config File 
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-e', '--exp', type=str, default='experiment1.json')
+args = parser.parse_args()
+
+print(args.exp)
+with open(args.exp) as config_file: # Reading the Config File 
     config = json.load(config_file)
 
 
@@ -171,19 +178,19 @@ if loss == 'TRADES':
 
 
 ######################################################## Optimizers ########################################
-
-if opt == 'SGD':
+#print(opt)
+if opt in ['SGD']:
     optimizer = Optimizers.SGD(net.parameters(), lr=lr, momentum=0.0, weight_decay=0.0)
 
-if opt == 'SGDMOM':
+if opt in ['SGDMOM']:
     optimizer = Optimizers.SGD(net.parameters(), lr=lr, momentum=momentum, weight_decay=wd)
 
-if opt == 'SubOpt':
+if opt in ['SubOpt']:
     optimizer = Optimizers.SubOpt(net.parameters(), lr=lr, momentum=0.0, weight_decay=0.0)
 
-if opt == 'SubOptMOM':
+if opt in ['SubOptMOM']:
     optimizer = Optimizers.SubOpt(net.parameters(), lr=lr, momentum=momentum, weight_decay=wd)
-
+#print(optimizer)
 
 
 ###################################### Main ################################################################

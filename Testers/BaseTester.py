@@ -7,8 +7,8 @@ import os
 import json
 from Visualizations import PlotLoss,PlotAcc
 
-with open('config.json') as config_file: # Reading the Config File 
-    config = json.load(config_file)
+#with open('config.json') as config_file: # Reading the Config File 
+#    config = json.load(config_file)
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
