@@ -179,10 +179,10 @@ if opt == 'SGDMOM':
     optimizer = Optimizers.SGD(net.parameters(), lr=lr, momentum=momentum, weight_decay=wd)
 
 if opt == 'SubOpt':
-    optimizer = Optimizers.SubOpt(net.parameters(), lr=lr, momentum=0.0, weight_decay=0.0, lam = lam)
+    optimizer = Optimizers.SubOpt(net.parameters(), lr=lr, momentum=0.0, weight_decay=0.0)
 
 if opt == 'SubOptMOM':
-    optimizer = Optimizers.SubOpt(net.parameters(), lr=lr, momentum=momentum, weight_decay=wd, lam = lam)
+    optimizer = Optimizers.SubOpt(net.parameters(), lr=lr, momentum=momentum, weight_decay=wd)
 
 
 
