@@ -11,6 +11,7 @@ exp = 1
 for model in ['Resnet50', 'WResnet']:
    for opt, atmeth in zip(optimizers, attack_method):
         cfg = copy.deepcopy(config)
+        cfg['data_name'] = 'CIFAR10'
         cfg['attack_method'] = atmeth
         cfg['optimizer'] = opt
         cfg['model_architecture'] = model
