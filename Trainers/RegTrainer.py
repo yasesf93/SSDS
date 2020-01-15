@@ -8,9 +8,6 @@ import json
 from .BaseTrainer import BaseTrainer 
 from Attacker import Attacker
 
-#with open('config.json') as config_file: # Reading the Config File 
-#    config = json.load(config_file)
-
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 class RegTrainer(BaseTrainer):

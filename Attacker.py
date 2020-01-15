@@ -8,8 +8,7 @@ import json
 from utils import to_var
 import numpy as np
 
-#with open('config.json') as config_file: # Reading the Config File 
-#    config = json.load(config_file)
+
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -90,7 +89,8 @@ class Attacker(object):
         new_v[v+normcheck<0] = 0
         new_v[v+normcheck>=0] = v[v+normcheck>=0] + normcheck[v+normcheck>=0]
         lamsum = (new_v*(delta.norm(p=float('inf'),dim=(1,2,3)) - self.eps)).sum()
-        v = new_v
+        v = new_v.clone().detach()
+        del new_v, lag, normcheck
         ############ Update t #############
         t=t+self.stepsize*(lam-1)
 
@@ -132,7 +132,8 @@ class Attacker(object):
         new_v = v.clone().detach()
         new_v[v+normcheck<0] = 0
         new_v[v+normcheck>=0] = v[v+normcheck>=0] + normcheck[v+normcheck>=0]
-        v = new_v
+        v = new_v.clone().detach()
+        del new_v, lag, normcheck
 
         return pert.detach(), pert-X_nat.detach(), new_delta, v
 

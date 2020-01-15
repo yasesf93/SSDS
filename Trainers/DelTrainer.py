@@ -14,15 +14,11 @@ from Visualizations import PlotVal, PlotHist, PlotImg
 import numpy as np
 from Optimizers.SubOpt import SubOpt
 
-#with open('config.json') as config_file: # Reading the Config File 
-#    config = json.load(config_file)
-
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 class DelTrainer(BaseTrainer):
     def __init__(self, model, traindataloader, optimizer, criterion, classes, n_epoch, trainbatchsize, expid, checkepoch, pres, stepsize, k, atmeth, c_1, c_2, eps, dataname, nstep, v, t, lam, **kwargs):
         super().__init__(model, traindataloader, optimizer, criterion, classes, n_epoch, trainbatchsize, expid, checkepoch, pres, stepsize, k, atmeth, c_1, c_2, eps, dataname, nstep, **kwargs)
-        self.atmeth = atmeth
         self.v = v
         self.t = t 
         self.lam = lam
@@ -64,6 +60,7 @@ class DelTrainer(BaseTrainer):
         delta = delta.to(device)
         delta = Variable(delta, requires_grad = True)
         indexes = self.traindataloader.indexes[batch_idx*self.batchsizetr:(batch_idx+1)*self.batchsizetr]
+        self.v = self.v.to(device)
         v_batch = self.v[indexes].squeeze().to(device)
         if self.atmeth == 'SSDS':
             X, randpert, new_delta, new_v, new_lam, new_t = self.attacker.SSDSattack(I, targets, delta, v_batch, self.t, self.lam, self.optimizer)
@@ -90,8 +87,10 @@ class DelTrainer(BaseTrainer):
                 self.log['train_spec_img_log']['randpert'][idx].append(randpert[i])
             self.traindataloader.dataset[idx] = new_delta[i]
         if self.atmeth == 'SSDS' or self.atmeth == 'NOLAM':
-            self.v[indexes] = new_v.unsqueeze(1).detach().cpu()
-        del new_delta, X
+            self.v[indexes] = new_v.unsqueeze(1)
+            new_v.detach().cpu()
+            del new_v
+        del new_delta, X 
         return loss.item(), predicted.eq(targets).sum().item(), targets.size(0)
 
 

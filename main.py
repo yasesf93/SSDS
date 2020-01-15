@@ -16,14 +16,15 @@ from Loss.trades import trades_loss
 import Testers
 import argparse 
 
-
-parser = argparse.ArgumentParser()
-parser.add_argument('-e', '--exp', type=str, default='experiment1.json')
-args = parser.parse_args()
-
-print(args.exp)
-with open(args.exp) as config_file: # Reading the Config File 
+with open('config.json') as config_file: # Reading the Config File 
     config = json.load(config_file)
+# parser = argparse.ArgumentParser()
+# parser.add_argument('-e', '--exp', type=str, default='experiment1.json')
+# args = parser.parse_args()
+
+# print(args.exp)
+# with open(args.exp) as config_file: # Reading the Config File 
+#     config = json.load(config_file)
 
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -165,7 +166,7 @@ if model == "WResnet":
 if model == "Simple":
     net = Models.SmallCNN(num_classes=len(classes), num_channels=num_channels)
 
-net = nn.DataParallel(net.to(device))
+net = net.to(device)
 
 ######################################################## Loss Function ########################################
 
@@ -178,7 +179,7 @@ if loss == 'TRADES':
 
 
 ######################################################## Optimizers ########################################
-#print(opt)
+
 if opt in ['SGD']:
     optimizer = Optimizers.SGD(net.parameters(), lr=lr, momentum=0.0, weight_decay=0.0)
 
@@ -190,7 +191,6 @@ if opt in ['SubOpt']:
 
 if opt in ['SubOptMOM']:
     optimizer = Optimizers.SubOpt(net.parameters(), lr=lr, momentum=momentum, weight_decay=wd)
-#print(optimizer)
 
 
 ###################################### Main ################################################################
