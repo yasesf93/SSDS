@@ -8,14 +8,14 @@
 
   "attack_method":"SSDS", 	"_comment": "=====REG,SSDS,PGD,FGSM,NOLAG,NOLAM,FREE====",
   "random_seed": 451760341,
-  "training_epochs": 500,
+  "training_epochs": 500,   "_comment": "should be 1000 for CIFAR10",
   "checkpoint_epochs": 100,
   "training_batch_size": 128,
   "fixed_learning_rate": true,
   "learning_rate_training": 0.001,
   "weight_decay": 0.0002,
   "momentum": 0.9,
-  "loss_function": "Xent",	"_comment":"Xent-CW-TRADES",
+  "loss_function": "Xent",	"_comment":"Xent",
   "optimizer": "SubOpt",				"_comment":"SGD,SGDMOM,SubOpt,SubOptMOM",
   "model_architecture": "Simple",  		"_comment":"Resnet50,WResnet,Resnet18,Simple",
   "transform": false,                            "_comment" : "should be true for IMAGENET" , 
@@ -25,7 +25,7 @@
 
   "_comment": "=====ADVERSARIAL EXAMPLES=====",
 
-  "epsilon": 0.3,
+  "epsilon": 0.3,   "_comment": "should be 0.03 for CIFAR10",
   "num_steps": 20,
   "step_size": 2.0,
   "v": 1.0,
