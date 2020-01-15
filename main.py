@@ -19,9 +19,11 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-e', '--exp', type=str, default='experiment1.json')
+parser.add_argument('-g', '--gpu', type=int)
 args = parser.parse_args()
 
-print(args.exp)
+
+torch.cuda.set_device(args.gpu)
 with open(args.exp) as config_file: # Reading the Config File 
     config = json.load(config_file)
 
@@ -120,10 +122,10 @@ if dataname == "CIFAR10":
         testloader = Dataloaders.DelDataLoader(testset, batch_size=batchsizets, shuffle=True)
         v_ts = v_scale*torch.ones(testloader.dataset.data.shape[0], 1)    
     else:
-        trainset = Datasets.cifar10clean(root='./data', train=True, download=True, transform=transform_train)
-        trainloader = Dataloaders.CleanDataLoader(trainset, batch_size=batchsizetr, shuffle=True) 
-        testset = Datasets.cifar10clean(root='./data', train=False, download=True, transform=transform_test)
-        testloader = Dataloaders.CleanDataLoader(testset, batch_size=batchsizets, shuffle=True) 
+        trainset = Datasets.CIFAR10del(root='./data', train=True, download=True, transform=transform_train)
+        trainloader = Dataloaders.DelDataLoader(trainset, batch_size=batchsizetr, shuffle=True) 
+        testset = Datasets.CIFAR10del(root='./data', train=False, download=True, transform=transform_test)
+        testloader = Dataloaders.DelDataLoader(testset, batch_size=batchsizets, shuffle=True) 
     classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
     num_channels = 3
 
@@ -165,7 +167,7 @@ if model == "WResnet":
 if model == "Simple":
     net = Models.SmallCNN(num_classes=len(classes), num_channels=num_channels)
 
-net = nn.DataParallel(net.to(device))
+net = net.to(device)
 
 ######################################################## Loss Function ########################################
 
