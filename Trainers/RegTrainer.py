@@ -8,21 +8,15 @@ import json
 from .BaseTrainer import BaseTrainer 
 from Attacker import Attacker
 
-#with open('config.json') as config_file: # Reading the Config File 
-#    config = json.load(config_file)
-
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 class RegTrainer(BaseTrainer):
-    def __init__(self, model, traindataloader, optimizer, criterion, classes, n_epoch, trainbatchsize, expid, checkepoch, pres, stepsize, k, atmeth, **kwargs):
-        super().__init__(model, traindataloader, optimizer, criterion, classes, n_epoch, trainbatchsize, expid, checkepoch, pres, stepsize, k,**kwargs)
-        self.atmeth = atmeth
+    def __init__(self, model, traindataloader, optimizer, criterion, classes, n_epoch, trainbatchsize, expid, checkepoch, pres, stepsize, k, atmeth, c_1, c_2, eps, dataname, nstep, **kwargs):
+        super().__init__(model, traindataloader, optimizer, criterion, classes, n_epoch, trainbatchsize, expid, checkepoch, pres, stepsize, k, atmeth, c_1, c_2, eps, dataname, nstep, **kwargs)
         self.pert = []
         self.best_acc = 0
         self.startepoch = 0
-        self.eps = kwargs.get('epsilon')
-        self.nstep = kwargs.get('nstep')
-        self.attacker = Attacker(self.eps, self.model, self.stepsize, self.optimizer, self.criterion, nstep=self.nstep)
+        self.attacker = Attacker(self.eps, self.model, self.stepsize, self.optimizer, self.criterion, self.c_1, self.c_2, self.nstep, self.dataname)
 
 
     def train_minibatch(self, batch_idx):

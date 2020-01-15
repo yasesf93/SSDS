@@ -16,9 +16,8 @@ from Loss.trades import trades_loss
 import Testers
 import argparse 
 
-
 parser = argparse.ArgumentParser()
-parser.add_argument('-e', '--exp', type=str, default='experiment1.json')
+parser.add_argument('-e', '--exp', type=str, default='config.json')
 parser.add_argument('-g', '--gpu', type=int)
 args = parser.parse_args()
 
@@ -180,7 +179,7 @@ if loss == 'TRADES':
 
 
 ######################################################## Optimizers ########################################
-#print(opt)
+
 if opt in ['SGD']:
     optimizer = Optimizers.SGD(net.parameters(), lr=lr, momentum=0.0, weight_decay=0.0)
 
@@ -192,17 +191,16 @@ if opt in ['SubOpt']:
 
 if opt in ['SubOptMOM']:
     optimizer = Optimizers.SubOpt(net.parameters(), lr=lr, momentum=momentum, weight_decay=wd)
-#print(optimizer)
 
 
 ###################################### Main ################################################################
 #Training
 
 if atmeth == 'PGD' or  atmeth == 'FGSM' or atmeth == 'REG' :
-    trainer = Trainers.RegTrainer(net, trainloader, optimizer, criterion, classes, n_epoch, batchsizetr, expid, checkepoch, pres, stepsize, k, atmeth, epsilon=eps, nstep=nstep)
+    trainer = Trainers.RegTrainer(net, trainloader, optimizer, criterion, classes, n_epoch, batchsizetr, expid, checkepoch, pres, stepsize, k, atmeth, c_1, c_2, eps, dataname, nstep)
     trainer.train(epochs=n_epoch, model=net)
 elif atmeth == 'SSDS' or atmeth == 'NOLAG' or atmeth == 'NOLAM':
-    trainer = Trainers.DelTrainer(net, trainloader, optimizer, criterion, classes, n_epoch, batchsizetr, expid, checkepoch, pres, stepsize, k, atmeth, v_tr, t, lam, c_1, c_2, eps, dataname)
+    trainer = Trainers.DelTrainer(net, trainloader, optimizer, criterion, classes, n_epoch, batchsizetr, expid, checkepoch, pres, stepsize, k, atmeth, c_1, c_2, eps, dataname, nstep, v_tr, t, lam)
     trainer.train(epochs=n_epoch, model=net)
 
 #Testing
@@ -221,11 +219,11 @@ for attack in ['REG', 'PGD', 'FGSM', 'SSDS','NOLAM', 'NOLAG']:
     if atmeth == 'PGD':
         n_ep_test = n_ep_PGD
     if atmeth == 'PGD' or  atmeth == 'FGSM' or atmeth == 'REG' :
-        tester = Testers.RegTester(net, testloader, optimizer, criterion, classes, n_ep_test, batchsizets, expid, checkepoch, pres, atmeth, epsilon=eps, nstep=nstep, stepsize=stepsize, k=k)
+        tester = Testers.RegTester(net, testloader, optimizer, criterion, classes, n_ep_test, batchsizets, expid, checkepoch, pres, stepsize, k, atmeth, c_1, c_2, eps, dataname, nstep)
         test_accuracy = tester.test(epochs=n_ep_test, model=net)
         ts_acc_mat[attack] = test_accuracy
     elif atmeth == 'SSDS' or atmeth == 'NOLAG' or atmeth == 'NOLAM':
-        tester = Testers.DelTester(net, testloader, optimizer, criterion, classes, n_ep_test, batchsizets, expid, checkepoch, pres, atmeth, v_ts, t, lam, c_1, c_2, eps, stepsize, k, dataname)
+        tester = Testers.DelTester(net, testloader, optimizer, criterion, classes, n_ep_test, batchsizets, expid, checkepoch, pres, stepsize, k, atmeth, c_1, c_2, eps, dataname, nstep, v_ts, t, lam)
         test_accuracy = tester.test(epochs=n_ep_test, model=net)
         ts_acc_mat[attack] = test_accuracy
 

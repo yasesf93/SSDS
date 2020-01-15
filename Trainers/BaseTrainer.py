@@ -8,13 +8,10 @@ import json
 import numpy as np
 from Visualizations import PlotLoss,PlotAcc
 
-#with open('config.json') as config_file: # Reading the Config File 
-#    config = json.load(config_file)
-
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 class BaseTrainer(object):
-    def __init__(self, model, traindataloader, optimizer, criterion, classes, n_epoch, trainbatchsize, expid, checkepoch, pres, stepsize, k, **kwargs):
+    def __init__(self, model, traindataloader, optimizer, criterion, classes, n_epoch, trainbatchsize, expid, checkepoch, pres, stepsize, k, atmeth, c_1, c_2, eps, dataname, nstep, **kwargs):
         self.model = model
         self.traindataloader = traindataloader
         self.optimizer = optimizer
@@ -29,6 +26,12 @@ class BaseTrainer(object):
         self.pres = pres
         self.stepsize = stepsize
         self.k = k
+        self.atmeth = atmeth
+        self.c_1 = c_1
+        self.c_2 = c_2   
+        self.eps = eps
+        self.dataname = dataname
+        self.nstep = nstep     
         self.log = {}
         self.log['train_loss'] = []
         self.log['train_acc'] = []   

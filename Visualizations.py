@@ -262,7 +262,7 @@ def PlotAcc(train, filename):
 def PlotVal(val, valname, filename, hline=None):
     col = [linspecer(1)]
     plt.figure()
-    plt.plot(val, color = col[0], linewidth=3, linestyle='-', label='Adversarial Training')
+    plt.plot(val, color = col[0], linewidth=3, linestyle='-')
     plt.ylabel(valname, fontsize=16)
     plt.xlabel("Number of epochs", fontsize=16)
     if hline is not None:

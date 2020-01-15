@@ -13,26 +13,19 @@ from torch.autograd import Variable
 import numpy as np
 from Visualizations import PlotVal, PlotHist, PlotImg
 
-#with open('config.json') as config_file: # Reading the Config File 
-#    config = json.load(config_file)
+
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 class DelTester(BaseTester):
-    def __init__(self, model, testdataloader, optimizer, criterion, classes, n_epoch, testbatchsize, expid, checkepoch, pres,atmeth, v, t, lam, c_1, c_2, eps, stepsize, k, dataname,**kwargs):
-        super().__init__(model, testdataloader, optimizer, criterion, classes, n_epoch, testbatchsize, expid, checkepoch, pres, atmeth, **kwargs)
+    def __init__(self, model, testdataloader, optimizer, criterion, classes, n_epoch, testbatchsize, expid, checkepoch, pres, stepsize, k, atmeth, c_1, c_2, eps, dataname, nstep, v, t, lam, **kwargs):
+        super().__init__(model, testdataloader, optimizer, criterion, classes, n_epoch, testbatchsize, expid, checkepoch, pres, stepsize, k, atmeth, c_1, c_2, eps, dataname, nstep, **kwargs)
         self.v = v
         self.t = t 
         self.lam = lam
-        self.c_1 = c_1
-        self.c_2 = c_2
         self.best_acc = 0
         self.startepoch = 0
-        self.eps = eps
-        self.stepsize = stepsize
-        self.k = k
-        self.dataname = dataname
-        self.attacker = Attacker(self.eps, self.model, self.stepsize, self.optimizer, self.criterion, c_1=self.c_1, c_2=self.c_2, lam=self.lam)
+        self.attacker = Attacker(self.eps, self.model, self.stepsize, self.optimizer, self.criterion, self.c_1, self.c_2, self.nstep, self.dataname)
 
 
         ########################### logs #########################################
@@ -69,11 +62,11 @@ class DelTester(BaseTester):
         self.v = self.v.to(device)
         v_batch = self.v[indexes].squeeze().to(device)
         if self.atmeth == 'SSDS':
-            X, new_delta, new_v, new_lam, new_t = self.attacker.SSDSattack(I, targets, delta, v_batch, self.t, self.lam, self.optimizer)  
+            X, randpert, new_delta, new_v, new_lam, new_t = self.attacker.SSDSattack(I, targets, delta, v_batch, self.t, self.lam, self.optimizer)  
         if self.atmeth == 'NOLAM':
-            X, new_delta, new_v = self.attacker.NOLAMattack(I, targets, delta, v_batch, self.optimizer)
+            X, randpert, new_delta, new_v = self.attacker.NOLAMattack(I, targets, delta, v_batch, self.optimizer)
         if self.atmeth == 'NOLAG':
-            X, new_delta, = self.attacker.NOLAGattack(I, targets, delta, self.optimizer)
+            X, randpert, new_delta, = self.attacker.NOLAGattack(I, targets, delta, self.optimizer)
         self.optimizer.zero_grad()
         outputs = self.model(X)
         targets = targets.long()
@@ -86,6 +79,8 @@ class DelTester(BaseTester):
             self.testdataloader.dataset[idx] = new_delta[i]
         if self.atmeth == 'SSDS' or self.atmeth == 'NOLAM':
             self.v[indexes] = new_v.unsqueeze(1)
+            new_v.detach().cpu()
+            del new_v
         del new_delta, X
         return loss.item(), predicted.eq(targets).sum().item(), targets.size(0)
 
