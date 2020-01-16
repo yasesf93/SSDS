@@ -213,7 +213,7 @@ print(tr_model['epoch'])
 print(tr_model['acc'])
 ts_acc_mat = {}
 
-for attack in ['NOLAG', 'NOLAM', 'SSDS', 'PGD', 'FGSM', 'REG']:
+for attack in ['PGD', 'FGSM', 'REG', 'NOLAG', 'NOLAM', 'SSDS']:
     atmeth = attack
     if atmeth in ['FGSM', 'REG']:
         n_ep_test = 1

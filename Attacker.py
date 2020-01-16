@@ -65,6 +65,7 @@ class Attacker(object):
         Optimizer.zero_grad()
         if self.dataname == 'MNIST':
             rand_i = torch.from_numpy(np.random.uniform(low=-self.eps*0.9, high=self.eps*0.9, size=X_nat.size())).to(device) 
+            print(rand_i.norm(p=float("inf")))
             rand_i = rand_i.float()
             pert = X_nat + rand_i
             pert = pert+delta
