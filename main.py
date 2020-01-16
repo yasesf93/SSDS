@@ -165,11 +165,10 @@ if model == "Simple":
     net = Models.SmallCNN(num_classes=len(classes), num_channels=num_channels)
 
 if dataname == 'IMAGENET':
-    net = Models.ResNet18(pretrained=True, num_classes=len(classes), num_channels=num_channels)
+    net = Models.ResNet18(num_classes=len(classes), num_channels=num_channels)
     net.avgpool = nn.AdaptiveAvgPool2d(1)
     num_ftrs = net.fc.in_features
-    net.fc = nn.Linear(num_ftrs, 200)
-    
+    net.fc = nn.Linear(num_ftrs, 200)   
 net = net.to(device)
 
 ######################################################## Loss Function ########################################
