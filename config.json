@@ -6,13 +6,13 @@
 
   "_comment": "===== TRAINING CONFIGURATION =====",
 
-  "attack_method":"REG", 	"_comment": "=====REG,SSDS,PGD,FGSM,NOLAG,NOLAM,FREE====",
+  "attack_method":"NOLAG", 	"_comment": "=====REG,SSDS,PGD,FGSM,NOLAG,NOLAM,FREE====",
   "random_seed": 451760341,
   "training_epochs": 500,   "_comment": "should be 1000 for CIFAR10",
   "checkpoint_epochs": 100,
   "training_batch_size": 128,
   "fixed_learning_rate": true,
-  "learning_rate_training": 0.1, "_comment": "should be 0.1 for CIFAR10",
+  "learning_rate_training": 0.01, "_comment": "should be 0.1 for CIFAR10 and 0.01 for MNIST",
   "weight_decay": 0.0002,
   "momentum": 0.9,
   "loss_function": "Xent",	"_comment":"Xent",
@@ -25,11 +25,12 @@
 
   "_comment": "=====ADVERSARIAL EXAMPLES=====",
 
-  "epsilon": 0.03,   "_comment": "should be 0.03 for CIFAR10, 0.3 for MNIST",
-  "num_steps": 20,  "_comment": "should be 20 for CIFAR10 and 40 for MNIST",
-  "step_size": 2, 
-  "v": 1,
-  "lambda": 4.0, 
+  "epsilon": 0.3,   "_comment": "should be 0.03 for CIFAR10, 0.3 for MNIST",
+  "num_steps": 40,  "_comment": "should be 20 for CIFAR10 and 40 for MNIST",
+  "step_size_SSDS": 2, 
+  "step_size_PGD" : 0.01,   "_comment": "should be 0.007 for CIFAR10 and 0.01 for MNIST",
+  "v": 10,
+  "lambda": 40.0, 
   "step_size_decay": 0.001,
   "c_1" : 100,
   "c_2" : 100,

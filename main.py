@@ -60,7 +60,8 @@ pres = config['precision_bound']
 
 eps = config['epsilon']
 nstep = config['num_steps']
-stepsize = config['step_size']
+stepsize_ssds = config['step_size_SSDS']
+stepsize_pgd = config['step_size_PGD']
 v_scale = config['v']
 lam = config['lambda']
 k = config['step_size_decay']
@@ -200,10 +201,10 @@ if opt in ['SubOptMOM']:
 #Training
 
 if atmeth == 'PGD' or  atmeth == 'FGSM' or atmeth == 'REG' :
-    trainer = Trainers.RegTrainer(net, trainloader, optimizer, criterion, classes, n_epoch, batchsizetr, expid, checkepoch, pres, stepsize, k, atmeth, c_1, c_2, eps, dataname, nstep)
+    trainer = Trainers.RegTrainer(net, trainloader, optimizer, criterion, classes, n_epoch, batchsizetr, expid, checkepoch, pres, stepsize_pgd, k, atmeth, c_1, c_2, eps, dataname, nstep)
     trainer.train(epochs=n_epoch, model=net)
 elif atmeth == 'SSDS' or atmeth == 'NOLAG' or atmeth == 'NOLAM':
-    trainer = Trainers.DelTrainer(net, trainloader, optimizer, criterion, classes, n_epoch, batchsizetr, expid, checkepoch, pres, stepsize, k, atmeth, c_1, c_2, eps, dataname, nstep, v_tr, t, lam)
+    trainer = Trainers.DelTrainer(net, trainloader, optimizer, criterion, classes, n_epoch, batchsizetr, expid, checkepoch, pres, stepsize_ssds, k, atmeth, c_1, c_2, eps, dataname, nstep, v_tr, t, lam)
     trainer.train(epochs=n_epoch, model=net)
 
 #Testing
@@ -222,11 +223,11 @@ for attack in ['PGD', 'FGSM', 'REG', 'NOLAG', 'NOLAM', 'SSDS']:
     if atmeth == 'PGD':
         n_ep_test = n_ep_PGD
     if atmeth == 'PGD' or  atmeth == 'FGSM' or atmeth == 'REG' :
-        tester = Testers.RegTester(net, testloader, optimizer, criterion, classes, n_ep_test, batchsizets, expid, checkepoch, pres, stepsize, k, atmeth, c_1, c_2, eps, dataname, nstep)
+        tester = Testers.RegTester(net, testloader, optimizer, criterion, classes, n_ep_test, batchsizets, expid, checkepoch, pres, stepsize_pgd, k, atmeth, c_1, c_2, eps, dataname, nstep)
         test_accuracy = tester.test(epochs=n_ep_test, model=net)
         ts_acc_mat[attack] = test_accuracy
     elif atmeth == 'SSDS' or atmeth == 'NOLAG' or atmeth == 'NOLAM':
-        tester = Testers.DelTester(net, testloader, optimizer, criterion, classes, n_ep_test, batchsizets, expid, checkepoch, pres, stepsize, k, atmeth, c_1, c_2, eps, dataname, nstep, v_ts, t, lam)
+        tester = Testers.DelTester(net, testloader, optimizer, criterion, classes, n_ep_test, batchsizets, expid, checkepoch, pres, stepsize_ssds, k, atmeth, c_1, c_2, eps, dataname, nstep, v_ts, t, lam)
         test_accuracy = tester.test(epochs=n_ep_test, model=net)
         ts_acc_mat[attack] = test_accuracy
 
