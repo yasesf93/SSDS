@@ -116,15 +116,15 @@ class DelTester(BaseTester):
 
     def plot_log(self):
         super(DelTester, self).plot_log()
-        PlotVal(self.log['test_spec_delt_val_log']['val'], r'$\delta$', '%s/test_results/test_specific_delta_pixel.pdf'%(self.expid), hline=self.eps) #plot delta pixel
+        PlotVal(self.log['test_spec_delt_val_log']['val'], r'$\delta$', '%s/test_results/test_specific_delta_pixel_%s.pdf'%(self.expid, self.atmeth), hline=self.eps) #plot delta pixel
         
         for idx, img_id in enumerate(self.log['test_spec_img_log']['ids']): #plot v, delta and delta difference for each image
-            PlotVal(self.log['test_spec_img_log']['infnormdelta'][idx], r'$|\delta|_{\infty}$', '%s/test_results/infnorm_delta_%s.pdf'%(self.expid, img_id), hline=self.eps)
-            PlotVal(self.log['test_spec_img_log']['2normdelt'][idx], r'$|\delta|_{2}$', '%s/test_results/2norm_delta_%s.pdf'%(self.expid, img_id))
-            PlotVal(self.log['test_spec_img_log']['2normdiff'][idx], r'$|\delta_{k+1} - \delta_{k}|_{2}$', '%s/test_results/2norm_diff_%s.pdf'%(self.expid, img_id))
-            PlotVal(self.log['test_spec_img_log']['1normdiff'][idx], r'$|\delta_{k+1} - \delta_{k}|$', '%s/test_results/1norm_diff_%s.pdf'%(self.expid, img_id))
+            PlotVal(self.log['test_spec_img_log']['infnormdelta'][idx], r'$|\delta|_{\infty}$', '%s/test_results/infnorm_delta_%s_%s.pdf'%(self.expid, img_id, self.atmeth), hline=self.eps)
+            PlotVal(self.log['test_spec_img_log']['2normdelt'][idx], r'$|\delta|_{2}$', '%s/test_results/2norm_delta_%s_%s.pdf'%(self.expid, img_id, self.atmeth))
+            PlotVal(self.log['test_spec_img_log']['2normdiff'][idx], r'$|\delta_{k+1} - \delta_{k}|_{2}$', '%s/test_results/2norm_diff_%s_%s.pdf'%(self.expid, img_id, self.atmeth))
+            PlotVal(self.log['test_spec_img_log']['1normdiff'][idx], r'$|\delta_{k+1} - \delta_{k}|$', '%s/test_results/1norm_diff_%s_%s.pdf'%(self.expid, img_id, self.atmeth))
             if self.atmeth in ['NOLAM', 'SSDS']:
-                PlotVal(self.log['test_spec_img_log']['v'][idx], 'v', '%s/test_results/v_%s.pdf'%(self.expid, img_id), hline=1.0)  
+                PlotVal(self.log['test_spec_img_log']['v'][idx], 'v', '%s/test_results/v_%s_%s.pdf'%(self.expid, img_id, self.atmeth), hline=1.0)  
         
 
         for idx, img_id in enumerate(self.log['test_img_vis_log']['ids']): #Plot Images
@@ -137,4 +137,4 @@ class DelTester(BaseTester):
             outputs = self.model(pert)
             _, predicted = outputs.max(1)
             PlotImg(I.squeeze().cpu().numpy(), delta.squeeze().cpu().numpy(), pert.squeeze().cpu().numpy(), self.classes[targets], self.classes[predicted],
-                '%s/test_results/img_%s.pdf'%(self.expid, img_id), self.dataname)
+                '%s/test_results/img_%s_%s.pdf'%(self.expid, img_id, self.atmeth), self.dataname)

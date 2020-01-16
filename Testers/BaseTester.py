@@ -85,4 +85,4 @@ class BaseTester(object):
     def plot_log(self):
         if not os.path.isdir('%s/test_results'%(self.expid)):
             os.mkdir('%s/test_results'%(self.expid))
-        PlotAcc(self.ts_acc_ls,'%s/test_results/TestAcc.pdf'%(self.expid))
+        PlotAcc(self.ts_acc_ls,'%s/test_results/TestAcc_%s.pdf'%(self.expid, self.atmeth))

@@ -157,15 +157,18 @@ if dataname == "MNIST":
 if model =="Resnet50":
     net = Models.ResNet50(num_classes=len(classes), num_channels=num_channels)
 
-if model =="Resnet18":
-    net = Models.ResNet18(num_classes=len(classes), num_channels=num_channels)
-
 if model == "WResnet":
     net = Models.WideResNet(num_classes=len(classes), num_channels=num_channels)
 
 if model == "Simple":
     net = Models.SmallCNN(num_classes=len(classes), num_channels=num_channels)
 
+if dataname == 'IMAGENET':
+    net = Models.ResNet18(pretrained=True, num_classes=len(classes), num_channels=num_channels)
+    net.avgpool = nn.AdaptiveAvgPool2d(1)
+    num_ftrs = net.fc.in_features
+    net.fc = nn.Linear(num_ftrs, 200)
+    
 net = net.to(device)
 
 ######################################################## Loss Function ########################################
@@ -210,7 +213,7 @@ print(tr_model['epoch'])
 print(tr_model['acc'])
 ts_acc_mat = {}
 
-for attack in ['REG', 'PGD', 'FGSM', 'SSDS','NOLAM', 'NOLAG']:
+for attack in ['NOLAG', 'NOLAM', 'SSDS', 'PGD', 'FGSM', 'REG']:
     atmeth = attack
     if atmeth in ['FGSM', 'REG']:
         n_ep_test = 1

@@ -96,7 +96,7 @@ class DelTrainer(BaseTrainer):
 
     def train_epoch(self, epoch):
         super(DelTrainer, self).train_epoch(epoch)      
-        if self.atmeth is 'SSDS':
+        if self.atmeth == 'SSDS':
             self.log['train_t'].append(self.t)
             self.log['train_lambda'].append(self.lam)
 
@@ -119,7 +119,7 @@ class DelTrainer(BaseTrainer):
         print('attack method', self.atmeth)
         print('infinity norm of delta value', self.traindataloader.dataset[15000][0][1].norm(p=float("inf")).item())
         print('infinity norm of final perturbation value', self.log['train_spec_img_log']['randpert'][15000][-1].norm(p=float("inf")).item())
-        if self.atmeth is 'SSDS':
+        if self.atmeth == 'SSDS':
             print('lambda', self.lam)
         if self.atmeth in ['NOLAM', 'SSDS']:
             print('v', self.v[15000].item())
@@ -129,7 +129,7 @@ class DelTrainer(BaseTrainer):
 
     def plot_log(self):
         super(DelTrainer, self).plot_log()
-        if self.atmeth is 'SSDS':
+        if self.atmeth == 'SSDS':
             PlotVal(self.log['train_lambda'], 'lambda', '%s/train_results/train_lambda.pdf'%(self.expid)) #plot lambda
             PlotVal(self.log['train_t'], 't', '%s/train_results/train_t.pdf'%(self.expid)) #plot t
         PlotVal(self.log['train_spec_delt_val_log']['val'], r'$\delta$', '%s/train_results/train_specific_delta_pixel.pdf'%(self.expid), hline=self.eps) #plot delta pixel
