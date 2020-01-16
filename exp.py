@@ -5,8 +5,8 @@ import copy
 with open('config.json', 'r') as f:
     config = json.load(f)
 
-optimizers = ['SubOpt', 'SubOptMOM', 'SGD', 'SGDMOM', 'SGD', 'SGDMOM', 'SGD', 'SGDMOM', 'SGD', 'SGDMOM', 'SGD', 'SGDMOM']
-attack_method = ['SSDS', 'SSDS','NOLAM','NOLAM', 'NOLAG', 'NOLAG', 'PGD', 'PGD', 'FGSM', 'FGSM', 'REG', 'REG']
+optimizers = ['SubOptMOM', 'SGDMOM', 'SGDMOM', 'SGDMOM', 'SGDMOM', 'SGDMOM']
+attack_method = ['SSDS', 'NOLAM', 'NOLAG', 'PGD', 'FGSM', 'REG']
 exp = 1
 for model in ['Resnet50', 'WResnet']:
    for opt, atmeth in zip(optimizers, attack_method):
