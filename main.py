@@ -114,18 +114,12 @@ else:
 
 ######################################################## Data translation  ########################################
 if dataname == "CIFAR10":
-    if atmeth == 'SSDS' or atmeth == 'NOLAG' or atmeth == 'NOLAM':
-        trainset = Datasets.CIFAR10del(root='./data', train=True, download=True, transform=transform_train)
-        trainloader = Dataloaders.DelDataLoader(trainset, batch_size=batchsizetr, shuffle=True)
-        v_tr = v_scale*torch.ones(trainloader.dataset.data.shape[0], 1)     
-        testset = Datasets.CIFAR10del(root='./data', train=False, download=True, transform=transform_test)
-        testloader = Dataloaders.DelDataLoader(testset, batch_size=batchsizets, shuffle=True)
-        v_ts = v_scale*torch.ones(testloader.dataset.data.shape[0], 1)    
-    else:
-        trainset = Datasets.CIFAR10del(root='./data', train=True, download=True, transform=transform_train)
-        trainloader = Dataloaders.DelDataLoader(trainset, batch_size=batchsizetr, shuffle=True) 
-        testset = Datasets.CIFAR10del(root='./data', train=False, download=True, transform=transform_test)
-        testloader = Dataloaders.DelDataLoader(testset, batch_size=batchsizets, shuffle=True) 
+    trainset = Datasets.CIFAR10del(root='./data', train=True, download=True, transform=transform_train)
+    trainloader = Dataloaders.DelDataLoader(trainset, batch_size=batchsizetr, shuffle=True)
+    v_tr = v_scale*torch.ones(trainloader.dataset.data.shape[0], 1)     
+    testset = Datasets.CIFAR10del(root='./data', train=False, download=True, transform=transform_test)
+    testloader = Dataloaders.DelDataLoader(testset, batch_size=batchsizets, shuffle=True)
+    v_ts = v_scale*torch.ones(testloader.dataset.data.shape[0], 1)    
     classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
     num_channels = 3
 
@@ -167,8 +161,9 @@ if model == "Simple":
 if dataname == 'IMAGENET':
     net = Models.ResNet18(num_classes=len(classes), num_channels=num_channels)
     net.avgpool = nn.AdaptiveAvgPool2d(1)
-    num_ftrs = net.fc.in_features
-    net.fc = nn.Linear(num_ftrs, 200)   
+    num_ftrs = net.linear.in_features
+    print(num_ftrs)
+    net.linear = nn.Linear(num_ftrs*49, 200)   
 net = net.to(device)
 
 ######################################################## Loss Function ########################################
@@ -214,11 +209,19 @@ print(tr_model['acc'])
 ts_acc_mat = {}
 
 for attack in ['PGD', 'FGSM', 'REG', 'NOLAG', 'NOLAM', 'SSDS']:
+    if dataname == "MNIST":
+        testset = Datasets.MNISTdel(root='./data', train=False, download=True, transform=transform_test)
+        testloader = Dataloaders.DelDataLoader(testset, batch_size=batchsizets, shuffle=True)
+    if dataname == "CIFAR10":
+        testset = Datasets.CIFAR10del(root='./data', train=False, download=True, transform=transform_test)
+        testloader = Dataloaders.DelDataLoader(testset, batch_size=batchsizets, shuffle=True)
+    if dataname == "IMAGENET":
+        testloader = dataloaders['test']
     atmeth = attack
     if atmeth in ['FGSM', 'REG']:
         n_ep_test = 1
     if atmeth in ['SSDS','NOLAM','NOLAG']:
-        n_ep_test = n_epoch
+        n_ep_test = n_epoch*2
     if atmeth == 'PGD':
         n_ep_test = n_ep_PGD
     if atmeth == 'PGD' or  atmeth == 'FGSM' or atmeth == 'REG' :

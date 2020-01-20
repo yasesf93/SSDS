@@ -72,10 +72,9 @@ class DelTester(BaseTester):
         targets = targets.long()
         loss = self.criterion(outputs, targets)      
         _,predicted = outputs.max(1)
-
         for i, idx in enumerate(indexes):
             if idx in self.log['test_spec_img_log']['ids']:
-                self.log['test_spec_img_log']['differ'][idx].append((new_delta[i].detach().cpu() - delta[i].detach().cpu()))
+                self.log['test_spec_img_log']['differ'][idx].append((new_delta[i].detach().cpu() - delta[i].detach().cpu()))  
             self.testdataloader.dataset[idx] = new_delta[i]
         if self.atmeth == 'SSDS' or self.atmeth == 'NOLAM':
             self.v[indexes] = new_v.unsqueeze(1)
