@@ -7,6 +7,7 @@ import os
 import json
 from .BaseTrainer import BaseTrainer 
 from Attacker import Attacker
+from Loss.trades import trades_loss
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -28,15 +29,27 @@ class RegTrainer(BaseTrainer):
             I , self.pert = self.attacker.PGDattack(I.cpu().numpy(),targets.cpu(),self.optimizer)
             I = torch.from_numpy(I)
             I = I.to(device)
+            self.optimizer.zero_grad()
+            outputs = self.model(I)
+            loss = self.criterion(outputs, targets)
     
         if self.atmeth == "FGSM":
             I = self.attacker.FGSMattack(I.cpu().numpy(),targets.cpu(),self.optimizer)
             I = torch.from_numpy(I)
             I = I.to(device)
+            self.optimizer.zero_grad()
+            outputs = self.model(I)
+            loss = self.criterion(outputs, targets)
 
-        self.optimizer.zero_grad()
-        outputs = self.model(I)
-        loss = self.criterion(outputs, targets)
+        if self.atmeth == "REG":
+            self.optimizer.zero_grad()
+            outputs = self.model(I)
+            loss = self.criterion(outputs, targets)
+        
+        if self.atmeth == 'TRADES':
+            self.optimizer.zero_grad()
+            loss = trades_loss(model=self.model, x_natural=I, y=targets,Optimizer=self.optimizer, step_size=self.stepsize, epsilon=self.eps, perturb_steps=self.nstep, beta=6)
+
         loss.backward()
         self.optimizer.step()
         _,predicted = outputs.max(1)

@@ -12,7 +12,7 @@ import Datasets
 import Dataloaders 
 import Models
 import Optimizers
-from Loss.trades import trades_loss
+import Loss
 import Testers
 import argparse 
 
@@ -166,14 +166,6 @@ if dataname == 'IMAGENET':
     net.linear = nn.Linear(num_ftrs*49, 200)   
 net = net.to(device)
 
-######################################################## Loss Function ########################################
-
-if loss == 'Xent':
-    criterion = nn.CrossEntropyLoss()
-
-if loss == 'TRADES':
-    criterion = trades_loss()
-
 
 
 ######################################################## Optimizers ########################################
@@ -191,10 +183,17 @@ if opt in ['SubOptMOM']:
     optimizer = Optimizers.SubOpt(net.parameters(), lr=lr, momentum=momentum, weight_decay=wd)
 
 
+
+######################################################## Loss Function ########################################
+
+if loss == 'Xent':
+    criterion = nn.CrossEntropyLoss()
+
+
 ###################################### Main ################################################################
 #Training
 
-if atmeth == 'PGD' or  atmeth == 'FGSM' or atmeth == 'REG' :
+if atmeth == 'PGD' or  atmeth == 'FGSM' or atmeth == 'REG' or atmeth == 'TRADES' :
     trainer = Trainers.RegTrainer(net, trainloader, optimizer, criterion, classes, n_epoch, batchsizetr, expid, checkepoch, pres, stepsize_pgd, k, atmeth, c_1, c_2, eps, dataname, nstep)
     trainer.train(epochs=n_epoch, model=net)
 elif atmeth == 'SSDS' or atmeth == 'NOLAG' or atmeth == 'NOLAM':
