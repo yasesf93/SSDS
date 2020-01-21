@@ -26,7 +26,7 @@
   "_comment": "=====ADVERSARIAL EXAMPLES=====",
 
   "epsilon": 0.03,   "_comment": "should be 0.03 for CIFAR10 and IMAGENET and 0.3 for MNIST",
-  "num_steps": 10,  "_comment": "should be 20 for CIFAR10 and IMAGENET and 40 for MNIST",
+  "num_steps": 10,  "_comment": "should be 20 for CIFAR10 and IMAGENET and 40 for MNIST, and 10 for TRADES",
   "step_size_SSDS": 2, 
   "step_size_PGD" : 0.007,   "_comment": "should be 0.007 for CIFAR10,and IMAGENET and 0.01 for MNIST",
   "v": 1,

@@ -48,7 +48,7 @@ class RegTrainer(BaseTrainer):
         
         if self.atmeth == 'TRADES':
             self.optimizer.zero_grad()
-            loss = trades_loss(model=self.model, x_natural=I, y=targets,Optimizer=self.optimizer, step_size=self.stepsize, epsilon=self.eps, perturb_steps=self.nstep, beta=6)
+            loss = trades_loss(model=self.model, x_natural=I, y=targets,optimizer=self.optimizer, step_size=self.stepsize, epsilon=self.eps, perturb_steps=self.nstep, beta=6)
 
         loss.backward()
         self.optimizer.step()
