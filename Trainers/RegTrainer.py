@@ -12,8 +12,9 @@ from Loss.trades import trades_loss
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 class RegTrainer(BaseTrainer):
-    def __init__(self, model, traindataloader, optimizer, criterion, classes, n_epoch, trainbatchsize, expid, checkepoch, pres, stepsize, k, atmeth, c_1, c_2, eps, dataname, nstep, **kwargs):
+    def __init__(self, model, traindataloader, optimizer, criterion, classes, n_epoch, trainbatchsize, expid, checkepoch, pres, stepsize, k, atmeth, c_1, c_2, eps, dataname, nstep, beta, **kwargs):
         super().__init__(model, traindataloader, optimizer, criterion, classes, n_epoch, trainbatchsize, expid, checkepoch, pres, stepsize, k, atmeth, c_1, c_2, eps, dataname, nstep, **kwargs)
+        self.beta = beta
         self.pert = []
         self.best_acc = 0
         self.startepoch = 0
@@ -48,7 +49,7 @@ class RegTrainer(BaseTrainer):
         
         if self.atmeth == 'TRADES':
             self.optimizer.zero_grad()
-            loss = trades_loss(model=self.model, x_natural=I, y=targets,optimizer=self.optimizer, step_size=self.stepsize, epsilon=self.eps, perturb_steps=self.nstep, beta=6)
+            loss = trades_loss(model=self.model, x_natural=I, y=targets,optimizer=self.optimizer, step_size=self.stepsize, epsilon=self.eps, perturb_steps=self.nstep, beta=self.beta)
 
         loss.backward()
         self.optimizer.step()

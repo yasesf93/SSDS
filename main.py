@@ -69,6 +69,7 @@ c_1 = config['c_1']
 c_2 = config['c_2']
 t = config['t']
 n_ep_PGD = config['PGD_Restarts']
+beta = config['beta_TRADES']
 
 if not os.path.exists('Experiments'):
     os.makedirs('Experiments')
@@ -194,7 +195,7 @@ if loss == 'Xent':
 #Training
 
 if atmeth == 'PGD' or  atmeth == 'FGSM' or atmeth == 'REG' or atmeth == 'TRADES' :
-    trainer = Trainers.RegTrainer(net, trainloader, optimizer, criterion, classes, n_epoch, batchsizetr, expid, checkepoch, pres, stepsize_pgd, k, atmeth, c_1, c_2, eps, dataname, nstep)
+    trainer = Trainers.RegTrainer(net, trainloader, optimizer, criterion, classes, n_epoch, batchsizetr, expid, checkepoch, pres, stepsize_pgd, k, atmeth, c_1, c_2, eps, dataname, nstep, beta)
     trainer.train(epochs=n_epoch, model=net)
 elif atmeth == 'SSDS' or atmeth == 'NOLAG' or atmeth == 'NOLAM':
     trainer = Trainers.DelTrainer(net, trainloader, optimizer, criterion, classes, n_epoch, batchsizetr, expid, checkepoch, pres, stepsize_ssds, k, atmeth, c_1, c_2, eps, dataname, nstep, v_tr, t, lam)

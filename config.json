@@ -36,6 +36,7 @@
   "c_2" : 100,
   "t" : 1,
   "PGD_Restarts" : 10, 
+  "beta_TRADES" : 6,    "_comment": "should be 6 for CIFAR10, and 1 for MNIST",
 
 
 "_comment": "=====TEST CONFIGURATION=====",
