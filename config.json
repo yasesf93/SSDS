@@ -6,7 +6,7 @@
 
   "_comment": "===== TRAINING CONFIGURATION =====",
 
-  "attack_method":"NOLAM", 	"_comment": "=====REG,SSDS,PGD,FGSM,NOLAG,NOLAM,FREE====",
+  "attack_method":"SSDS", 	"_comment": "=====REG,SSDS,PGD,FGSM,NOLAG,NOLAM,FREE====",
   "random_seed": 451760341,
   "training_epochs": 1000,   "_comment": "should be 1000 for CIFAR10 and IMAGENET, 500 for MNIST",
   "checkpoint_epochs": 100,
@@ -16,8 +16,8 @@
   "weight_decay": 0.0002,
   "momentum": 0.9,
   "loss_function": "Xent",	"_comment":"Xent",
-  "optimizer": "SGDMOM",				"_comment":"SGD,SGDMOM,SubOpt,SubOptMOM",
-  "model_architecture": "WResnet",  		"_comment":"Resnet50,WResnet,Resnet18,Simple",
+  "optimizer": "SubOptMOM",				"_comment":"SGD,SGDMOM,SubOpt,SubOptMOM",
+  "model_architecture": "Resnet50",  		"_comment":"Resnet50,WResnet,Resnet18,Simple",
   "transform": true,                            "_comment" : "should be true for IMAGENET" , 
   "train" : true,
   "precision_bound" : 0.001,
