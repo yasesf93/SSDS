@@ -64,6 +64,7 @@ class BaseTester(object):
 
 
     def test(self, epochs, model):
+        model.eval()
         print(epochs)
         for epoch in range(self.startepoch, epochs+1):
             self.test_epoch(epoch) 

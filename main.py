@@ -194,12 +194,12 @@ if loss == 'Xent':
 ###################################### Main ################################################################
 #Training
 
-if atmeth == 'PGD' or  atmeth == 'FGSM' or atmeth == 'REG' or atmeth == 'TRADES' :
-    trainer = Trainers.RegTrainer(net, trainloader, optimizer, criterion, classes, n_epoch, batchsizetr, expid, checkepoch, pres, stepsize_pgd, k, atmeth, c_1, c_2, eps, dataname, nstep, beta)
-    trainer.train(epochs=n_epoch, model=net)
-elif atmeth == 'SSDS' or atmeth == 'NOLAG' or atmeth == 'NOLAM':
-    trainer = Trainers.DelTrainer(net, trainloader, optimizer, criterion, classes, n_epoch, batchsizetr, expid, checkepoch, pres, stepsize_ssds, k, atmeth, c_1, c_2, eps, dataname, nstep, v_tr, t, lam)
-    trainer.train(epochs=n_epoch, model=net)
+# if atmeth == 'PGD' or  atmeth == 'FGSM' or atmeth == 'REG' or atmeth == 'TRADES' :
+#     trainer = Trainers.RegTrainer(net, trainloader, optimizer, criterion, classes, n_epoch, batchsizetr, expid, checkepoch, pres, stepsize_pgd, k, atmeth, c_1, c_2, eps, dataname, nstep, beta)
+#     trainer.train(epochs=n_epoch, model=net)
+# elif atmeth == 'SSDS' or atmeth == 'NOLAG' or atmeth == 'NOLAM':
+#     trainer = Trainers.DelTrainer(net, trainloader, optimizer, criterion, classes, n_epoch, batchsizetr, expid, checkepoch, pres, stepsize_ssds, k, atmeth, c_1, c_2, eps, dataname, nstep, v_tr, t, lam)
+#     trainer.train(epochs=n_epoch, model=net)
 
 #Testing
 tr_model = torch.load('%s/checkpoint/ckpt.trainbest'%(expid))
@@ -208,7 +208,7 @@ print(tr_model['epoch'])
 print(tr_model['acc'])
 ts_acc_mat = {}
 
-for attack in ['PGD', 'FGSM', 'REG', 'NOLAG', 'NOLAM', 'SSDS']:
+for attack in ['PGD', 'FGSM', 'REG', 'NOLAG', 'SSDS']:
     if dataname == "MNIST":
         testset = Datasets.MNISTdel(root='./data', train=False, download=True, transform=transform_test)
         testloader = Dataloaders.DelDataLoader(testset, batch_size=batchsizets, shuffle=True)
@@ -221,7 +221,7 @@ for attack in ['PGD', 'FGSM', 'REG', 'NOLAG', 'NOLAM', 'SSDS']:
     if atmeth in ['FGSM', 'REG']:
         n_ep_test = 1
     if atmeth in ['SSDS','NOLAM','NOLAG']:
-        n_ep_test = n_epoch*2
+        n_ep_test = n_epoch
     if atmeth == 'PGD':
         n_ep_test = n_ep_PGD
     if atmeth == 'PGD' or  atmeth == 'FGSM' or atmeth == 'REG' :
