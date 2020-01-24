@@ -5,6 +5,7 @@ from utils import progress_bar
 import torch
 import os
 import json
+import numpy as np
 from .BaseTester import BaseTester 
 from Attacker import Attacker
 
@@ -24,6 +25,9 @@ class RegTester(BaseTester):
         (I, _), targets = self.testdataloader[batch_idx]
         I, targets = I.to(device), targets.to(device)
         targets = targets.long()
+        if self.atmeth == 'REG':
+            I = torch.from_numpy(np.clip(I.cpu().numpy(), 0, 1))
+            I = I.to(device)
 
         if self.atmeth == "PGD":
             I , self.pert = self.attacker.PGDattack(I.cpu().numpy(),targets.cpu(),self.optimizer)

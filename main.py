@@ -86,8 +86,6 @@ if config['transform']==True:
         ])
 
         transform_test = transforms.Compose([
-        transforms.RandomCrop(32, padding=4),
-        transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
         transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
         ])
@@ -208,7 +206,7 @@ print(tr_model['epoch'])
 print(tr_model['acc'])
 ts_acc_mat = {}
 
-for attack in ['PGD', 'FGSM', 'REG', 'NOLAG', 'SSDS']:
+for attack in ['REG', 'FGSM', 'PGD', 'NOLAG', 'SSDS']:
     if dataname == "MNIST":
         testset = Datasets.MNISTdel(root='./data', train=False, download=True, transform=transform_test)
         testloader = Dataloaders.DelDataLoader(testset, batch_size=batchsizets, shuffle=True)

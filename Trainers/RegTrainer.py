@@ -5,6 +5,7 @@ from utils import progress_bar
 import torch
 import os
 import json
+import numpy as np
 from .BaseTrainer import BaseTrainer 
 from Attacker import Attacker
 from Loss.trades import trades_loss
@@ -43,6 +44,8 @@ class RegTrainer(BaseTrainer):
             loss = self.criterion(outputs, targets)
 
         if self.atmeth == "REG":
+            I = torch.from_numpy(np.clip(I.cpu().numpy(), 0, 1))
+            I = I.to(device)
             self.optimizer.zero_grad()
             outputs = self.model(I)
             loss = self.criterion(outputs, targets)
