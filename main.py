@@ -70,6 +70,9 @@ c_2 = config['c_2']
 t = config['t']
 n_ep_PGD = config['PGD_Restarts']
 beta = config['beta_TRADES']
+blackbox = config['black_box']
+sourcem = config['source_model']
+targetm = config['target_model']
 
 if not os.path.exists('Experiments'):
     os.makedirs('Experiments')
@@ -150,12 +153,15 @@ if dataname == "MNIST":
 
 if model =="Resnet50":
     net = Models.ResNet50(num_classes=len(classes), num_channels=num_channels)
+    net_s = Models.ResNet50(num_classes=len(classes), num_channels=num_channels)
 
 if model == "WResnet":
     net = Models.WideResNet(num_classes=len(classes), num_channels=num_channels)
+    net_s = Models.WideResNet(num_classes=len(classes), num_channels=num_channels)
 
 if model == "Simple":
     net = Models.SmallCNN(num_classes=len(classes), num_channels=num_channels)
+    net_s = Models.SmallCNN(num_classes=len(classes), num_channels=num_channels)
 
 if dataname == 'IMAGENET':
     net = Models.ResNet18(num_classes=len(classes), num_channels=num_channels)
@@ -163,8 +169,9 @@ if dataname == 'IMAGENET':
     num_ftrs = net.linear.in_features
     print(num_ftrs)
     net.linear = nn.Linear(num_ftrs*49, 200)   
-net = net.to(device)
 
+net = net.to(device)
+net_s = net_s.to(device)
 
 
 ######################################################## Optimizers ########################################
@@ -200,37 +207,63 @@ if loss == 'Xent':
 #     trainer.train(epochs=n_epoch, model=net)
 
 #Testing
-tr_model = torch.load('%s/checkpoint/ckpt.trainbest'%(expid))
-net.load_state_dict(tr_model['net'])
-print(tr_model['epoch'])
-print(tr_model['acc'])
-ts_acc_mat = {}
+if blackbox == True:   
+    if sourcem == 'SSDS':
+        opt = 'SubOptMOM'
+    else:
+        opt = 'SGDMOM'
+    sourceid = 'Experiments/%s_%s_%s_%s_%s'%(str(sourcem), str(opt), str(loss), str(dataname), str(model))
+    source_model = torch.load('%s/checkpoint/ckpt.trainbest'%(sourceid), map_location='cuda:1')
+    net_s.load_state_dict(source_model['net'])
+    #print('net_source', source_model['net'])
+    if targetm == 'SSDS':
+        opt = 'SubOptMOM'
+    else:
+        opt = 'SGDMOM'
+    targetid = 'Experiments/%s_%s_%s_%s_%s'%(str(targetm), str(opt), str(loss), str(dataname), str(model))
+    target_model = torch.load('%s/checkpoint/ckpt.trainbest'%(targetid), map_location='cuda:1')
+    net.load_state_dict(target_model['net'])
+    #print('net_target', target_model['net'])
+    print(target_model['epoch'])
+    print(target_model['acc'])
+    testerBB = Testers.RegTesterBB(net, testloader, optimizer, criterion, classes, n_ep_PGD, batchsizets, expid, checkepoch, pres, stepsize_pgd, k, atmeth, c_1, c_2, eps, dataname, nstep, net_s)
+    bb_test_accuracy = testerBB.test(epochs=1, model=net)
+    print('source model', sourcem)
+    print('target model', targetm)
+    print('Black box accuracy', bb_test_accuracy)
+else:
+    #white_box_Testing
+    tr_model = torch.load('%s/checkpoint/ckpt.trainbest'%(expid))
+    net.load_state_dict(tr_model['net'])
+    print(tr_model['epoch'])
+    print(tr_model['acc'])
+    ts_acc_mat = {}
 
-for attack in ['REG', 'FGSM', 'PGD', 'NOLAG', 'SSDS']:
-    if dataname == "MNIST":
-        testset = Datasets.MNISTdel(root='./data', train=False, download=True, transform=transform_test)
-        testloader = Dataloaders.DelDataLoader(testset, batch_size=batchsizets, shuffle=True)
-    if dataname == "CIFAR10":
-        testset = Datasets.CIFAR10del(root='./data', train=False, download=True, transform=transform_test)
-        testloader = Dataloaders.DelDataLoader(testset, batch_size=batchsizets, shuffle=True)
-    if dataname == "IMAGENET":
-        testloader = dataloaders['test']
-    atmeth = attack
-    if atmeth in ['FGSM', 'REG']:
-        n_ep_test = 1
-    if atmeth in ['SSDS','NOLAM','NOLAG']:
-        n_ep_test = n_epoch
-    if atmeth == 'PGD':
-        n_ep_test = n_ep_PGD
-    if atmeth == 'PGD' or  atmeth == 'FGSM' or atmeth == 'REG' :
-        tester = Testers.RegTester(net, testloader, optimizer, criterion, classes, n_ep_test, batchsizets, expid, checkepoch, pres, stepsize_pgd, k, atmeth, c_1, c_2, eps, dataname, nstep)
-        test_accuracy = tester.test(epochs=n_ep_test, model=net)
-        ts_acc_mat[attack] = test_accuracy
-    elif atmeth == 'SSDS' or atmeth == 'NOLAG' or atmeth == 'NOLAM':
-        tester = Testers.DelTester(net, testloader, optimizer, criterion, classes, n_ep_test, batchsizets, expid, checkepoch, pres, stepsize_ssds, k, atmeth, c_1, c_2, eps, dataname, nstep, v_ts, t, lam)
-        test_accuracy = tester.test(epochs=n_ep_test, model=net)
-        ts_acc_mat[attack] = test_accuracy
+    for attack in ['REG', 'FGSM', 'PGD', 'NOLAG', 'SSDS']:
+        if dataname == "MNIST":
+            testset = Datasets.MNISTdel(root='./data', train=False, download=True, transform=transform_test)
+            testloader = Dataloaders.DelDataLoader(testset, batch_size=batchsizets, shuffle=True)
+        if dataname == "CIFAR10":
+            testset = Datasets.CIFAR10del(root='./data', train=False, download=True, transform=transform_test)
+            testloader = Dataloaders.DelDataLoader(testset, batch_size=batchsizets, shuffle=True)
+        if dataname == "IMAGENET":
+            testloader = dataloaders['test']
+        atmeth = attack
+        if atmeth in ['FGSM', 'REG']:
+            n_ep_test = 1
+        if atmeth in ['SSDS','NOLAM','NOLAG']:
+            n_ep_test = n_epoch
+        if atmeth == 'PGD':
+            n_ep_test = n_ep_PGD
+        if atmeth == 'PGD' or  atmeth == 'FGSM' or atmeth == 'REG' :
+            tester = Testers.RegTester(net, testloader, optimizer, criterion, classes, n_ep_test, batchsizets, expid, checkepoch, pres, stepsize_pgd, k, atmeth, c_1, c_2, eps, dataname, nstep)
+            test_accuracy = tester.test(epochs=n_ep_test, model=net)
+            ts_acc_mat[attack] = test_accuracy
+        elif atmeth == 'SSDS' or atmeth == 'NOLAG' or atmeth == 'NOLAM':
+            tester = Testers.DelTester(net, testloader, optimizer, criterion, classes, n_ep_test, batchsizets, expid, checkepoch, pres, stepsize_ssds, k, atmeth, c_1, c_2, eps, dataname, nstep, v_ts, t, lam)
+            test_accuracy = tester.test(epochs=n_ep_test, model=net)
+            ts_acc_mat[attack] = test_accuracy
 
-with open('%s/testresults.json'%(expid), 'w') as res:
-    json.dump(ts_acc_mat, res, indent=4)
-print(ts_acc_mat)
+    with open('%s/testresults.json'%(expid), 'w') as res:
+        json.dump(ts_acc_mat, res, indent=4)
+    print(ts_acc_mat)

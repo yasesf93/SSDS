@@ -33,15 +33,15 @@ class Attacker(object):
             X_var = to_var(torch.from_numpy(X), requires_grad=True)
             y_var = to_var(torch.LongTensor(y))
             Optimizer.zero_grad()
-            scores = self.model(X_var)
-            loss = self.criterion(scores, y_var)
+            with torch.enable_grad():
+                scores = self.model(X_var)
+                loss = self.criterion(scores, y_var)
             loss.backward()
             grad = X_var.grad.data.cpu().numpy()
             per = self.stepsize*np.sign(grad)
             X += per
             X = np.clip(X,X_nat-self.eps, X_nat+self.eps)
             X = np.clip(X, 0, 1) # ensure valid pixel range
-
         return X, per
 
     ############################################### FGSM ############################################

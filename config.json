@@ -6,7 +6,7 @@
 
   "_comment": "===== TRAINING CONFIGURATION =====",
 
-  "attack_method":"REG", 	"_comment": "=====REG,SSDS,PGD,FGSM,NOLAG,NOLAM,TRADES====",
+  "attack_method":"PGD", 	"_comment": "=====REG,SSDS,PGD,FGSM,NOLAG,NOLAM,TRADES====",
   "random_seed": 451760341,
   "training_epochs": 1000,   "_comment": "should be 1000 for CIFAR10 and IMAGENET, 500 for MNIST",
   "checkpoint_epochs": 100,
@@ -41,5 +41,8 @@
 
 "_comment": "=====TEST CONFIGURATION=====",
 
+  "black_box" : true,
+  "source_model" : "REG", 
+  "target_model" : "PGD", 
   "test_batch_size": 128
 }
