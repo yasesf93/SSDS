@@ -7,11 +7,13 @@ import errno
 import numpy as np
 import torch
 import codecs
-class MNISTdel(data.Dataset):
-    """`MNIST <http://yann.lecun.com/exdb/mnist/>`_ Dataset.
+
+class FMNISTdel(data.Dataset):
+    """`Fashion-MNIST <https://github.com/zalandoresearch/fashion-mnist>`_ Dataset.
+
     Args:
-        root (string): Root directory of dataset where ``processed/training.pt``
-            and  ``processed/test.pt`` exist.
+        root (string): Root directory of dataset where ``Fashion-MNIST/processed/training.pt``
+            and  ``Fashion-MNIST/processed/test.pt`` exist.
         train (bool, optional): If True, creates dataset from ``training.pt``,
             otherwise from ``test.pt``.
         download (bool, optional): If true, downloads the dataset from the internet and
@@ -23,15 +25,22 @@ class MNISTdel(data.Dataset):
             target and transforms it.
     """
     urls = [
-        'http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz',
-        'http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz',
-        'http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz',
-        'http://yann.lecun.com/exdb/mnist/t10k-labels-idx1-ubyte.gz',
+        ("http://fashion-mnist.s3-website.eu-central-1.amazonaws.com/train-images-idx3-ubyte.gz",
+         "8d4fb7e6c68d591d4c3dfef9ec88bf0d"),
+        ("http://fashion-mnist.s3-website.eu-central-1.amazonaws.com/train-labels-idx1-ubyte.gz",
+         "25c81989df183df01b3e8a0aad5dffbe"),
+        ("http://fashion-mnist.s3-website.eu-central-1.amazonaws.com/t10k-images-idx3-ubyte.gz",
+         "bef4ecab320f06d8554ea6380940ec79"),
+        ("http://fashion-mnist.s3-website.eu-central-1.amazonaws.com/t10k-labels-idx1-ubyte.gz",
+         "bb300cfdad3c16e7a12a480ee83cd310")
     ]
+    classes = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat', 'Sandal',
+               'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
     raw_folder = 'raw'
     processed_folder = 'processed'
     training_file = 'training.pt'
     test_file = 'test.pt'
+
     def __init__(self, root, train=True, transform=None, target_transform=None, download=False):
         self.root = os.path.expanduser(root)
         self.transform = transform
@@ -127,6 +136,7 @@ class MNISTdel(data.Dataset):
         with open(os.path.join(self.root, self.processed_folder, self.test_file), 'wb') as f:
             torch.save(test_set, f)
         print('Done!')
+        
     def __repr__(self):
         fmt_str = 'Dataset ' + self.__class__.__name__ + '\n'
         fmt_str += '    Number of datapoints: {}\n'.format(self.__len__())
@@ -138,7 +148,6 @@ class MNISTdel(data.Dataset):
         tmp = '    Target Transforms (if any): '
         fmt_str += '{0}{1}'.format(tmp, self.target_transform.__repr__().replace('\n', '\n' + ' ' * len(tmp)))
         return fmt_str
-
 
 
 def get_int(b):

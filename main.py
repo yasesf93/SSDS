@@ -148,6 +148,16 @@ if dataname == "MNIST":
     classes = ['0 - zero', '1 - one', '2 - two', '3 - three', '4 - four', '5 - five', '6 - six', '7 - seven', '8 - eight', '9 - nine']
     num_channels = 1
 
+if dataname == "FashionMNIST":
+    trainset = Datasets.FMNISTdel(root='./data', train=True, download=True, transform=transform_train)
+    trainloader = Dataloaders.DelDataLoader(trainset, batch_size=batchsizetr, shuffle=True)
+    v_tr = v_scale*torch.ones(trainloader.dataset.delta.shape[0],1)      
+    testset = Datasets.FMNISTdel(root='./data', train=False, download=True, transform=transform_test)
+    testloader = Dataloaders.DelDataLoader(testset, batch_size=batchsizets, shuffle=True)
+    v_ts = v_scale*torch.ones(testloader.dataset.delta.shape[0], 1).to(device) 
+    classes = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat', 'Sandal','Shirt', 'Sneaker', 'Bag', 'Ankle boot']    
+    num_channels = 1
+
 ######################################################## Models ########################################
 
 
@@ -162,6 +172,10 @@ if model == "WResnet":
 if model == "Simple":
     net = Models.SmallCNN(num_classes=len(classes), num_channels=num_channels)
     net_s = Models.SmallCNN(num_classes=len(classes), num_channels=num_channels)
+
+if model == "VGG":
+    net = Models.VGG('VGG19')
+    net_s = Models.VGG('VGG19')
 
 if dataname == 'IMAGENET':
     net = Models.ResNet18(num_classes=len(classes), num_channels=num_channels)
@@ -198,13 +212,14 @@ if loss == 'Xent':
 
 ###################################### Main ################################################################
 #Training
+if training == True:
 
-# if atmeth == 'PGD' or  atmeth == 'FGSM' or atmeth == 'REG' or atmeth == 'TRADES' :
-#     trainer = Trainers.RegTrainer(net, trainloader, optimizer, criterion, classes, n_epoch, batchsizetr, expid, checkepoch, pres, stepsize_pgd, k, atmeth, c_1, c_2, eps, dataname, nstep, beta)
-#     trainer.train(epochs=n_epoch, model=net)
-# elif atmeth == 'SSDS' or atmeth == 'NOLAG' or atmeth == 'NOLAM':
-#     trainer = Trainers.DelTrainer(net, trainloader, optimizer, criterion, classes, n_epoch, batchsizetr, expid, checkepoch, pres, stepsize_ssds, k, atmeth, c_1, c_2, eps, dataname, nstep, v_tr, t, lam)
-#     trainer.train(epochs=n_epoch, model=net)
+    if atmeth == 'PGD' or  atmeth == 'FGSM' or atmeth == 'REG' or atmeth == 'TRADES' :
+        trainer = Trainers.RegTrainer(net, trainloader, optimizer, criterion, classes, n_epoch, batchsizetr, expid, checkepoch, pres, stepsize_pgd, k, atmeth, c_1, c_2, eps, dataname, nstep, beta)
+        trainer.train(epochs=n_epoch, model=net)
+    elif atmeth == 'SSDS' or atmeth == 'NOLAG' or atmeth == 'NOLAM':
+        trainer = Trainers.DelTrainer(net, trainloader, optimizer, criterion, classes, n_epoch, batchsizetr, expid, checkepoch, pres, stepsize_ssds, k, atmeth, c_1, c_2, eps, dataname, nstep, v_tr, t, lam)
+        trainer.train(epochs=n_epoch, model=net)
 
 #Testing
 if blackbox == True:   
@@ -215,7 +230,6 @@ if blackbox == True:
     sourceid = 'Experiments/%s_%s_%s_%s_%s'%(str(sourcem), str(opt), str(loss), str(dataname), str(model))
     source_model = torch.load('%s/checkpoint/ckpt.trainbest'%(sourceid), map_location='cuda:1')
     net_s.load_state_dict(source_model['net'])
-    #print('net_source', source_model['net'])
     if targetm == 'SSDS':
         opt = 'SubOptMOM'
     else:
@@ -223,7 +237,6 @@ if blackbox == True:
     targetid = 'Experiments/%s_%s_%s_%s_%s'%(str(targetm), str(opt), str(loss), str(dataname), str(model))
     target_model = torch.load('%s/checkpoint/ckpt.trainbest'%(targetid), map_location='cuda:1')
     net.load_state_dict(target_model['net'])
-    #print('net_target', target_model['net'])
     print(target_model['epoch'])
     print(target_model['acc'])
     testerBB = Testers.RegTesterBB(net, testloader, optimizer, criterion, classes, n_ep_PGD, batchsizets, expid, checkepoch, pres, stepsize_pgd, k, atmeth, c_1, c_2, eps, dataname, nstep, net_s)
@@ -233,7 +246,7 @@ if blackbox == True:
     print('Black box accuracy', bb_test_accuracy)
 else:
     #white_box_Testing
-    tr_model = torch.load('%s/checkpoint/ckpt.trainbest'%(expid))
+    tr_model = torch.load('%s/checkpoint/ckpt.trainbest'%(expid), map_location='cuda:0')
     net.load_state_dict(tr_model['net'])
     print(tr_model['epoch'])
     print(tr_model['acc'])
@@ -242,6 +255,9 @@ else:
     for attack in ['REG', 'FGSM', 'PGD', 'NOLAG', 'SSDS']:
         if dataname == "MNIST":
             testset = Datasets.MNISTdel(root='./data', train=False, download=True, transform=transform_test)
+            testloader = Dataloaders.DelDataLoader(testset, batch_size=batchsizets, shuffle=True)
+        if dataname == "FashionMNIST":
+            testset = Datasets.FMNISTdel(root='./data', train=False, download=True, transform=transform_test)
             testloader = Dataloaders.DelDataLoader(testset, batch_size=batchsizets, shuffle=True)
         if dataname == "CIFAR10":
             testset = Datasets.CIFAR10del(root='./data', train=False, download=True, transform=transform_test)

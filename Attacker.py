@@ -63,8 +63,8 @@ class Attacker(object):
     def SSDSattack(self, X_nat, y, delta, v, t, lam, Optimizer):
         #it gets v and delta for batch as inputs
         Optimizer.zero_grad()
-        if self.dataname == 'MNIST':
-            rand_i = torch.from_numpy(np.random.uniform(low=-self.eps*0.9, high=self.eps*0.9, size=X_nat.size())).to(device) 
+        if self.dataname in ['MNIST', 'FashionMNIST']:
+            rand_i = torch.from_numpy(np.random.uniform(low=-self.eps, high=self.eps, size=X_nat.size())).to(device) 
             rand_i = rand_i.float()
             pert = X_nat + rand_i
             pert = pert+delta
@@ -106,8 +106,8 @@ class Attacker(object):
     ############################################### NOLAM ############################################
     def NOLAMattack(self, X_nat, y, delta, v, Optimizer):
         #it gets v and delta for batch as inputs
-        if self.dataname == 'MNIST':
-            rand_i = torch.from_numpy(np.random.uniform(low=-self.eps*0.9, high=self.eps*0.9, size=X_nat.size())).to(device) 
+        if self.dataname in ['MNIST', 'FashionMNIST']:
+            rand_i = torch.from_numpy(np.random.uniform(low=-self.eps, high=self.eps, size=X_nat.size())).to(device) 
             rand_i = rand_i.float()
             pert = X_nat + rand_i
             pert = pert+delta
@@ -140,8 +140,8 @@ class Attacker(object):
     ############################################### NOLAG ############################################
     def NOLAGattack(self, X_nat, y, delta, Optimizer):
         #it gets v and delta for batch as inputs
-        if self.dataname == 'MNIST':
-            rand_i = torch.from_numpy(np.random.uniform(low=-self.eps*0.9, high=self.eps*0.9, size=X_nat.size())).to(device) 
+        if self.dataname in ['MNIST', 'FashionMNIST']:
+            rand_i = torch.from_numpy(np.random.uniform(low=-self.eps, high=self.eps, size=X_nat.size())).to(device) 
             rand_i = rand_i.float()
             pert = X_nat + rand_i
             pert = pert+delta
