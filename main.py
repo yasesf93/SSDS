@@ -149,10 +149,10 @@ if dataname == "MNIST":
     num_channels = 1
 
 if dataname == "FashionMNIST":
-    trainset = Datasets.FMNISTdel(root='./data', train=True, download=True, transform=transform_train)
+    trainset = Datasets.FMNISTdel(root='./data/FMNIST', train=True, download=True, transform=transform_train)
     trainloader = Dataloaders.DelDataLoader(trainset, batch_size=batchsizetr, shuffle=True)
     v_tr = v_scale*torch.ones(trainloader.dataset.delta.shape[0],1)      
-    testset = Datasets.FMNISTdel(root='./data', train=False, download=True, transform=transform_test)
+    testset = Datasets.FMNISTdel(root='./data/FMNIST', train=False, download=True, transform=transform_test)
     testloader = Dataloaders.DelDataLoader(testset, batch_size=batchsizets, shuffle=True)
     v_ts = v_scale*torch.ones(testloader.dataset.delta.shape[0], 1).to(device) 
     classes = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat', 'Sandal','Shirt', 'Sneaker', 'Bag', 'Ankle boot']    
