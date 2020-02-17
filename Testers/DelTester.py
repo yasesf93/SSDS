@@ -18,8 +18,8 @@ from Visualizations import PlotVal, PlotHist, PlotImg
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 class DelTester(BaseTester):
-    def __init__(self, model, testdataloader, optimizer, criterion, classes, n_epoch, testbatchsize, expid, checkepoch, pres, stepsize, k, atmeth, c_1, c_2, eps, dataname, nstep, v, t, lam, **kwargs):
-        super().__init__(model, testdataloader, optimizer, criterion, classes, n_epoch, testbatchsize, expid, checkepoch, pres, stepsize, k, atmeth, c_1, c_2, eps, dataname, nstep, **kwargs)
+    def __init__(self, model, testdataloader, optimizer, criterion, n_epoch, testbatchsize, expid, checkepoch, pres, stepsize, k, atmeth, c_1, c_2, eps, dataname, nstep, v, t, lam, **kwargs):
+        super().__init__(model, testdataloader, optimizer, criterion, n_epoch, testbatchsize, expid, checkepoch, pres, stepsize, k, atmeth, c_1, c_2, eps, dataname, nstep, **kwargs)
         self.v = v
         self.t = t 
         self.lam = lam
@@ -135,5 +135,5 @@ class DelTester(BaseTester):
             self.optimizer.zero_grad()
             outputs = self.model(pert)
             _, predicted = outputs.max(1)
-            PlotImg(I.squeeze().cpu().numpy(), delta.squeeze().cpu().numpy(), pert.squeeze().cpu().numpy(), self.classes[targets], self.classes[predicted],
+            PlotImg(I.squeeze().cpu().numpy(), delta.squeeze().cpu().numpy(), pert.squeeze().cpu().numpy(),
                 '%s/test_results/img_%s_%s.pdf'%(self.expid, img_id, self.atmeth), self.dataname)

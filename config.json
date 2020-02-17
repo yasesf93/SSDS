@@ -1,36 +1,35 @@
 {
   "_comment": "===== DATASET CONFIGURATION =====",
-  "data_name": "FashionMNIST",	"_comment": "====CIFAR10,IMAGENET,MNIST, FashionMNIST====",
+  "data_name": "CIFAR100",	"_comment": "====CIFAR10, CIFAR100, IMAGENET,MNIST, FashionMNIST====",
 
 
 
   "_comment": "===== TRAINING CONFIGURATION =====",
 
-  "attack_method":"REG", 	"_comment": "=====REG,SSDS,PGD,FGSM,NOLAG,NOLAM,TRADES====",
+  "attack_method":"NOLAG", 	"_comment": "=====REG,SSDS,PGD,FGSM,NOLAG,NOLAM,TRADES,Madry====",
   "random_seed": 451760341,
-  "training_epochs": 500,   "_comment": "should be 1000 for CIFAR10 and IMAGENET, 500 for MNIST",
+  "training_epochs": 1000,   "_comment": "should be 1000 for CIFAR10 and IMAGENET, 500 for MNIST",
   "checkpoint_epochs": 100,
   "training_batch_size": 128,
-  "fixed_learning_rate": true,
-  "learning_rate_training": 0.01, "_comment": "should be 0.1 for CIFAR10, 0.01 for MNIST, 0.0001 for IMAGENET",
+  "learning_rate_training": 0.1, "_comment": "should be 0.1 for CIFAR10, 0.01 for MNIST, 0.0001 for IMAGENET",
   "weight_decay": 0.0002,
   "momentum": 0.9,
   "loss_function": "Xent",	"_comment":"Xent",
   "optimizer": "SGDMOM",				"_comment":"SGD,SGDMOM,SubOpt,SubOptMOM",
-  "model_architecture": "Simple",  		"_comment":"Resnet50,WResnet,Resnet18,Simple,VGG",
-  "transform": false,                            "_comment" : "should be true for IMAGENET, false for MNIST and FMNIST" , 
+  "model_architecture": "Resnet50",  		"_comment":"Resnet50,WResnet,Resnet18,Simple,VGG",
+  "transform": true,                            "_comment" : "should be true for IMAGENET, false for MNIST and FMNIST" , 
   "train" : true,
   "precision_bound" : 0.001,
   
 
   "_comment": "=====ADVERSARIAL EXAMPLES=====",
 
-  "epsilon": 0.3,   "_comment": "should be 0.03 for CIFAR10 and IMAGENET and 0.3 for MNIST",
-  "num_steps": 40,  "_comment": "should be 20 for CIFAR10 and IMAGENET and 40 for MNIST, and 10 for TRADES",
+  "epsilon": 0.03,   "_comment": "should be 0.03 for CIFAR10 and IMAGENET and 0.3 for MNIST",
+  "num_steps": 20,  "_comment": "should be 20 for CIFAR10 and IMAGENET and 40 for MNIST, and 10 for TRADES",
   "step_size_SSDS": 2, 
-  "step_size_PGD" : 0.01,   "_comment": "should be 0.007 for CIFAR10,and IMAGENET and 0.01 for MNIST",
-  "v": 10,
-  "lambda": 40, 
+  "step_size_PGD" : 0.007,   "_comment": "should be 0.007 for CIFAR10,and IMAGENET and 0.01 for MNIST",
+  "v": 1,
+  "lambda": 4, 
   "step_size_decay": 0.001,
   "c_1" : 100,
   "c_2" : 100,
@@ -42,7 +41,7 @@
 "_comment": "=====TEST CONFIGURATION=====",
 
   "black_box" : false,
-  "source_model" : "TRADES", 
-  "target_model" : "PGD", 
+  "source_model" : "Madry", 
+  "target_model" : "SSDS", 
   "test_batch_size": 128
 }

@@ -17,8 +17,8 @@ from Optimizers.SubOpt import SubOpt
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 class DelTrainer(BaseTrainer):
-    def __init__(self, model, traindataloader, optimizer, criterion, classes, n_epoch, trainbatchsize, expid, checkepoch, pres, stepsize, k, atmeth, c_1, c_2, eps, dataname, nstep, v, t, lam, **kwargs):
-        super().__init__(model, traindataloader, optimizer, criterion, classes, n_epoch, trainbatchsize, expid, checkepoch, pres, stepsize, k, atmeth, c_1, c_2, eps, dataname, nstep, **kwargs)
+    def __init__(self, model, traindataloader, optimizer, criterion, n_epoch, trainbatchsize, expid, checkepoch, pres, stepsize, k, atmeth, c_1, c_2, eps, dataname, nstep, lr, v, t, lam, **kwargs):
+        super().__init__(model, traindataloader, optimizer, criterion, n_epoch, trainbatchsize, expid, checkepoch, pres, stepsize, k, atmeth, c_1, c_2, eps, dataname, nstep, lr, **kwargs)
         self.v = v
         self.t = t 
         self.lam = lam
@@ -153,6 +153,8 @@ class DelTrainer(BaseTrainer):
             self.optimizer.zero_grad()
             outputs = self.model(pert)
             _, predicted = outputs.max(1)
-            PlotImg(I.squeeze().cpu().numpy(), delta.squeeze().cpu().numpy(), pert.squeeze().cpu().numpy(), self.classes[targets], self.classes[predicted],
+            #PlotImg(I.squeeze().cpu().numpy(), delta.squeeze().cpu().numpy(), pert.squeeze().cpu().numpy(), self.classes[targets], self.classes[predicted],
+            #    '%s/train_results/img_%s.pdf'%(self.expid, img_id), self.dataname)
+            PlotImg(I.squeeze().cpu().numpy(), delta.squeeze().cpu().numpy(), pert.squeeze().cpu().numpy(),
                 '%s/train_results/img_%s.pdf'%(self.expid, img_id), self.dataname)
         

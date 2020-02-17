@@ -15,6 +15,7 @@ import Optimizers
 import Loss
 import Testers
 import argparse 
+from collections import OrderedDict
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-e', '--exp', type=str, default='config.json')
@@ -80,7 +81,8 @@ expid = 'Experiments/%s_%s_%s_%s_%s'%(str(atmeth), str(opt), str(loss), str(data
 print('expid',expid)
 ######################################################## Transformation ########################################
 if config['transform']==True:
-    if dataname == "CIFAR10":
+    #if dataname == "CIFAR10":
+    if dataname  in ["CIFAR10", "CIFAR100"]:
         transform_train = transforms.Compose([
         transforms.RandomCrop(32, padding=4),
         transforms.RandomHorizontalFlip(),
@@ -123,6 +125,17 @@ if dataname == "CIFAR10":
     testloader = Dataloaders.DelDataLoader(testset, batch_size=batchsizets, shuffle=True)
     v_ts = v_scale*torch.ones(testloader.dataset.data.shape[0], 1)    
     classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+    num_classes = len(classes)
+    num_channels = 3
+
+if dataname == "CIFAR100":
+    trainset = Datasets.CIFAR100del(root='./data', train=True, download=True, transform=transform_train)
+    trainloader = Dataloaders.DelDataLoader(trainset, batch_size=batchsizetr, shuffle=True)
+    v_tr = v_scale*torch.ones(trainloader.dataset.data.shape[0], 1)     
+    testset = Datasets.CIFAR100del(root='./data', train=False, download=True, transform=transform_test)
+    testloader = Dataloaders.DelDataLoader(testset, batch_size=batchsizets, shuffle=True)
+    v_ts = v_scale*torch.ones(testloader.dataset.data.shape[0], 1)    
+    num_classes = 100
     num_channels = 3
 
 if dataname == "IMAGENET":
@@ -137,6 +150,7 @@ if dataname == "IMAGENET":
     trainloader = dataloaders['train']
     testloader = dataloaders['test']
     num_channels = 3
+    num_classes = len(classes)
 
 if dataname == "MNIST":
     trainset = Datasets.MNISTdel(root='./data', train=True, download=True, transform=transform_train)
@@ -147,6 +161,7 @@ if dataname == "MNIST":
     v_ts = v_scale*torch.ones(testloader.dataset.delta.shape[0], 1).to(device)     
     classes = ['0 - zero', '1 - one', '2 - two', '3 - three', '4 - four', '5 - five', '6 - six', '7 - seven', '8 - eight', '9 - nine']
     num_channels = 1
+    num_classes = len(classes)
 
 if dataname == "FashionMNIST":
     trainset = Datasets.FMNISTdel(root='./data/FMNIST', train=True, download=True, transform=transform_train)
@@ -157,33 +172,35 @@ if dataname == "FashionMNIST":
     v_ts = v_scale*torch.ones(testloader.dataset.delta.shape[0], 1).to(device) 
     classes = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat', 'Sandal','Shirt', 'Sneaker', 'Bag', 'Ankle boot']    
     num_channels = 1
+    num_classes = len(classes)
 
 ######################################################## Models ########################################
 
 
 if model =="Resnet50":
-    net = Models.ResNet50(num_classes=len(classes), num_channels=num_channels)
-    net_s = Models.ResNet50(num_classes=len(classes), num_channels=num_channels)
+    net = Models.ResNet50(num_classes=num_classes, num_channels=num_channels)
+    net_s = Models.ResNet50(num_classes=num_classes, num_channels=num_channels)
 
 if model == "WResnet":
-    net = Models.WideResNet(num_classes=len(classes), num_channels=num_channels)
-    net_s = Models.WideResNet(num_classes=len(classes), num_channels=num_channels)
+    net = Models.WideResNet(num_classes=num_classes, num_channels=num_channels)
+    net_s = Models.WideResNet(num_classes=num_classes, num_channels=num_channels)
 
 if model == "Simple":
-    net = Models.SmallCNN(num_classes=len(classes), num_channels=num_channels)
-    net_s = Models.SmallCNN(num_classes=len(classes), num_channels=num_channels)
+    net = Models.SmallCNN(num_classes=num_classes, num_channels=num_channels)
+    net_s = Models.SmallCNN(num_classes=num_classes, num_channels=num_channels)
 
 if model == "VGG":
     net = Models.VGG('VGG19')
     net_s = Models.VGG('VGG19')
 
 if dataname == 'IMAGENET':
-    net = Models.ResNet18(num_classes=len(classes), num_channels=num_channels)
+    net = Models.ResNet18(num_classes=num_classes, num_channels=num_channels)
     net.avgpool = nn.AdaptiveAvgPool2d(1)
     num_ftrs = net.linear.in_features
     print(num_ftrs)
     net.linear = nn.Linear(num_ftrs*49, 200)   
 
+#net = nn.DataParallel(net)
 net = net.to(device)
 net_s = net_s.to(device)
 
@@ -204,6 +221,7 @@ if opt in ['SubOptMOM']:
 
 
 
+
 ######################################################## Loss Function ########################################
 
 if loss == 'Xent':
@@ -214,11 +232,11 @@ if loss == 'Xent':
 #Training
 if training == True:
 
-    if atmeth == 'PGD' or  atmeth == 'FGSM' or atmeth == 'REG' or atmeth == 'TRADES' :
-        trainer = Trainers.RegTrainer(net, trainloader, optimizer, criterion, classes, n_epoch, batchsizetr, expid, checkepoch, pres, stepsize_pgd, k, atmeth, c_1, c_2, eps, dataname, nstep, beta)
+    if atmeth in ['PGD', 'FGSM', 'REG', 'TRADES', 'Madry']:
+        trainer = Trainers.RegTrainer(net, trainloader, optimizer, criterion, n_epoch, batchsizetr, expid, checkepoch, pres, stepsize_pgd, k, atmeth, c_1, c_2, eps, dataname, nstep,lr, beta)
         trainer.train(epochs=n_epoch, model=net)
     elif atmeth == 'SSDS' or atmeth == 'NOLAG' or atmeth == 'NOLAM':
-        trainer = Trainers.DelTrainer(net, trainloader, optimizer, criterion, classes, n_epoch, batchsizetr, expid, checkepoch, pres, stepsize_ssds, k, atmeth, c_1, c_2, eps, dataname, nstep, v_tr, t, lam)
+        trainer = Trainers.DelTrainer(net, trainloader, optimizer, criterion, n_epoch, batchsizetr, expid, checkepoch, pres, stepsize_ssds, k, atmeth, c_1, c_2, eps, dataname, nstep,lr, v_tr, t, lam)
         trainer.train(epochs=n_epoch, model=net)
 
 #Testing
@@ -227,18 +245,42 @@ if blackbox == True:
         opt = 'SubOptMOM'
     else:
         opt = 'SGDMOM'
-    sourceid = 'Experiments/%s_%s_%s_%s_%s'%(str(sourcem), str(opt), str(loss), str(dataname), str(model))
-    source_model = torch.load('%s/checkpoint/ckpt.trainbest'%(sourceid), map_location='cuda:1')
-    net_s.load_state_dict(source_model['net'])
+    if sourcem == 'Madry':
+        source_model = torch.load('Madry50.pt', map_location='cuda:1')
+        state_dict = source_model['state_dict']
+        new_state_dict = OrderedDict()
+        for k, v in state_dict.items():
+            name = k[13:] # remove `module.model`
+            new_state_dict[name] = v
+        net_s.load_state_dict(new_state_dict, strict=False)
+    elif sourcem == 'TRADES':
+        source_model = torch.load('TRADESmodel_cifar_wrn.pt', map_location='cuda:1')
+        net_s.load_state_dict(source_model)
+    else:
+        sourceid = 'Experiments/%s_%s_%s_%s_%s'%(str(sourcem), str(opt), str(loss), str(dataname), str(model))
+        source_model = torch.load('%s/checkpoint/ckpt.trainbest'%(sourceid), map_location='cuda:1')
+        net_s.load_state_dict(source_model['net'])
     if targetm == 'SSDS':
         opt = 'SubOptMOM'
     else:
         opt = 'SGDMOM'
-    targetid = 'Experiments/%s_%s_%s_%s_%s'%(str(targetm), str(opt), str(loss), str(dataname), str(model))
-    target_model = torch.load('%s/checkpoint/ckpt.trainbest'%(targetid), map_location='cuda:1')
-    net.load_state_dict(target_model['net'])
-    print(target_model['epoch'])
-    print(target_model['acc'])
+    if targetm == 'Madry':
+        target_model = torch.load('Madry50.pt', map_location='cuda:1')
+        state_dict_target = target_model['state_dict']
+        new_state_dict_target = OrderedDict()
+        for k, v in state_dict_target.items():
+            name = k[13:] # remove `module.model`
+            new_state_dict_target[name] = v
+        net.load_state_dict(new_state_dict_target, strict=False)
+    elif targetm == 'TRADES':
+        target_model = torch.load('TRADESmodel_cifar_wrn.pt', map_location='cuda:1')
+        net.load_state_dict(target_model)
+    else:
+        targetid = 'Experiments/%s_%s_%s_%s_%s'%(str(targetm), str(opt), str(loss), str(dataname), str(model))
+        target_model = torch.load('%s/checkpoint/ckpt.trainbest'%(targetid), map_location='cuda:1')
+        net.load_state_dict(target_model['net'])
+        print(target_model['epoch'])
+        print(target_model['acc'])
     testerBB = Testers.RegTesterBB(net, testloader, optimizer, criterion, classes, n_ep_PGD, batchsizets, expid, checkepoch, pres, stepsize_pgd, k, atmeth, c_1, c_2, eps, dataname, nstep, net_s)
     bb_test_accuracy = testerBB.test(epochs=1, model=net)
     print('source model', sourcem)
@@ -257,10 +299,13 @@ else:
             testset = Datasets.MNISTdel(root='./data', train=False, download=True, transform=transform_test)
             testloader = Dataloaders.DelDataLoader(testset, batch_size=batchsizets, shuffle=True)
         if dataname == "FashionMNIST":
-            testset = Datasets.FMNISTdel(root='./data', train=False, download=True, transform=transform_test)
+            testset = Datasets.FMNISTdel(root='./data/FMNIST', train=False, download=True, transform=transform_test)
             testloader = Dataloaders.DelDataLoader(testset, batch_size=batchsizets, shuffle=True)
         if dataname == "CIFAR10":
             testset = Datasets.CIFAR10del(root='./data', train=False, download=True, transform=transform_test)
+            testloader = Dataloaders.DelDataLoader(testset, batch_size=batchsizets, shuffle=True)
+        if dataname == "CIFAR100":
+            testset = Datasets.CIFAR100del(root='./data', train=False, download=True, transform=transform_test)
             testloader = Dataloaders.DelDataLoader(testset, batch_size=batchsizets, shuffle=True)
         if dataname == "IMAGENET":
             testloader = dataloaders['test']
@@ -272,11 +317,11 @@ else:
         if atmeth == 'PGD':
             n_ep_test = n_ep_PGD
         if atmeth == 'PGD' or  atmeth == 'FGSM' or atmeth == 'REG' :
-            tester = Testers.RegTester(net, testloader, optimizer, criterion, classes, n_ep_test, batchsizets, expid, checkepoch, pres, stepsize_pgd, k, atmeth, c_1, c_2, eps, dataname, nstep)
+            tester = Testers.RegTester(net, testloader, optimizer, criterion, n_ep_test, batchsizets, expid, checkepoch, pres, stepsize_pgd, k, atmeth, c_1, c_2, eps, dataname, nstep)
             test_accuracy = tester.test(epochs=n_ep_test, model=net)
             ts_acc_mat[attack] = test_accuracy
         elif atmeth == 'SSDS' or atmeth == 'NOLAG' or atmeth == 'NOLAM':
-            tester = Testers.DelTester(net, testloader, optimizer, criterion, classes, n_ep_test, batchsizets, expid, checkepoch, pres, stepsize_ssds, k, atmeth, c_1, c_2, eps, dataname, nstep, v_ts, t, lam)
+            tester = Testers.DelTester(net, testloader, optimizer, criterion, n_ep_test, batchsizets, expid, checkepoch, pres, stepsize_ssds, k, atmeth, c_1, c_2, eps, dataname, nstep, v_ts, t, lam)
             test_accuracy = tester.test(epochs=n_ep_test, model=net)
             ts_acc_mat[attack] = test_accuracy
 

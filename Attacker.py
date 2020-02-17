@@ -7,6 +7,7 @@ import os
 import json
 from utils import to_var
 import numpy as np
+from torch.autograd import Variable
 
 
 
@@ -26,37 +27,34 @@ class Attacker(object):
 
     ############################################### PGD ############################################
     def PGDattack(self, X_nat, y, Optimizer):
-        randi=np.random.uniform(-self.eps, self.eps, X_nat.shape).astype('float32')
-        X = X_nat +randi
-        X = np.clip(X, 0, 1) 
+        random_noise = torch.FloatTensor(*X_nat.shape).uniform_(-self.eps, self.eps).to(device)
+        X = Variable(X_nat.data + random_noise, requires_grad=True)
         for i in range(self.nstep):
-            X_var = to_var(torch.from_numpy(X), requires_grad=True)
-            y_var = to_var(torch.LongTensor(y))
             Optimizer.zero_grad()
             with torch.enable_grad():
-                scores = self.model(X_var)
-                loss = self.criterion(scores, y_var)
+                scores = self.model(X)
+                loss = self.criterion(scores, y)
             loss.backward()
-            grad = X_var.grad.data.cpu().numpy()
-            per = self.stepsize*np.sign(grad)
-            X += per
-            X = np.clip(X,X_nat-self.eps, X_nat+self.eps)
-            X = np.clip(X, 0, 1) # ensure valid pixel range
+            grad = X.grad.data.sign()
+            per = self.stepsize*grad
+            X = Variable(X.data + per, requires_grad=True)
+            per = torch.clamp(X.data - X_nat.data, -self.eps, self.eps)
+            X = Variable(X_nat.data + per, requires_grad=True)
+            X = Variable(torch.clamp(X, 0, 1.0), requires_grad=True)
         return X, per
 
     ############################################### FGSM ############################################
     def FGSMattack(self, X_nat, y, Optimizer):
-        X = np.copy(X_nat) 
-        X_var = to_var(torch.from_numpy(X), requires_grad=True)
-        y_var = to_var(torch.LongTensor(y))
+        X = X_nat 
         Optimizer.zero_grad()
-        scores = self.model(X_var)  
-        loss = self.criterion(scores, y_var)
+        with torch.enable_grad():
+            scores = self.model(X)
+            loss = self.criterion(scores, y)  
         loss.backward()
-        grad = X_var.grad.data.cpu().numpy()
-        per = self.eps*np.sign(grad)
-        X += per
-        X = np.clip(X, 0, 1) # ensure valid pixel range
+        grad = X.grad.data.sign()
+        per = self.eps*grad
+        X = Variable(X.data + per, requires_grad=True)
+        X = Variable(torch.clamp(X, 0, 1.0), requires_grad=True)
         return X
 
     ############################################### SSDS-p ############################################

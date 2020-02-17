@@ -8,6 +8,7 @@ import json
 import numpy as np
 from .BaseTester import BaseTester 
 from Attacker import Attacker
+from torch.autograd import Variable
 
 
 
@@ -27,8 +28,8 @@ class RegTesterBB(BaseTester):
         (I, _), targets = self.testdataloader[batch_idx]
         I, targets = I.to(device), targets.to(device)
         targets = targets.long()
-        I , self.pert = self.attacker.PGDattack(I.cpu().numpy(),targets.cpu(),self.optimizer)
-        I = torch.from_numpy(I)
+        I, targets = Variable(I, requires_grad=True), Variable(targets)
+        I , self.pert = self.attacker.PGDattack(I,targets,self.optimizer)
         I = I.to(device)
         self.optimizer.zero_grad()
         outputs = self.model(I)

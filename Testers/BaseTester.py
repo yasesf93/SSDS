@@ -12,12 +12,12 @@ from Visualizations import PlotLoss,PlotAcc
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 class BaseTester(object):
-    def __init__(self, model, testdataloader, optimizer, criterion, classes, n_epoch, testbatchsize, expid, checkepoch, pres, stepsize, k, atmeth, c_1, c_2, eps, dataname, nstep, **kwargs):
+    def __init__(self, model, testdataloader, optimizer, criterion, n_epoch, testbatchsize, expid, checkepoch, pres, stepsize, k, atmeth, c_1, c_2, eps, dataname, nstep, **kwargs):
         self.model = model
         self.testdataloader = testdataloader
         self.optimizer = optimizer
         self.criterion = criterion
-        self.classes = classes
+        #self.classes = classes
         self.batchsizets = testbatchsize
         self.best_acc = 0
         self.startepoch = 0

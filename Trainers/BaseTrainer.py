@@ -11,12 +11,12 @@ from Visualizations import PlotLoss,PlotAcc
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 class BaseTrainer(object):
-    def __init__(self, model, traindataloader, optimizer, criterion, classes, n_epoch, trainbatchsize, expid, checkepoch, pres, stepsize, k, atmeth, c_1, c_2, eps, dataname, nstep, **kwargs):
+    def __init__(self, model, traindataloader, optimizer, criterion, n_epoch, trainbatchsize, expid, checkepoch, pres, stepsize, k, atmeth, c_1, c_2, eps, dataname, nstep,lr, **kwargs):
         self.model = model
         self.traindataloader = traindataloader
         self.optimizer = optimizer
         self.criterion = criterion
-        self.classes = classes
+        #self.classes = classes
         self.batchsizetr = trainbatchsize
         self.best_acc = 0
         self.startepoch = 0
@@ -31,7 +31,8 @@ class BaseTrainer(object):
         self.c_2 = c_2   
         self.eps = eps
         self.dataname = dataname
-        self.nstep = nstep     
+        self.nstep = nstep
+        self.lr = lr    
         self.log = {}
         self.log['train_loss'] = []
         self.log['train_acc'] = []   
@@ -90,6 +91,8 @@ class BaseTrainer(object):
         model.train()
         print(epochs)
         for epoch in range(self.startepoch, epochs+1):
+            if self.atmeth == 'Madry':
+                self.adjust_learning_rate(self.optimizer, epoch)
             self.train_epoch(epoch) 
             if (epoch)%self.checkepoch == 0:
                 self.save_log(epoch)
@@ -112,3 +115,11 @@ class BaseTrainer(object):
         PlotLoss(self.log['train_loss'],'%s/train_results/TrainLoss.pdf'%(self.expid))
         PlotAcc(self.log['train_acc'],'%s/train_results/TrainAcc.pdf'%(self.expid))
     
+    def adjust_learning_rate(self, optimizer, epoch):
+        lr = self.lr
+        if epoch >= 102:
+            lr = self.lr * 0.1
+        if epoch >= 153:
+            lr = self.lr * 0.01
+        for param_group in optimizer.param_groups:
+            param_group['lr'] = lr

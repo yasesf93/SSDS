@@ -8,6 +8,8 @@ import json
 import numpy as np
 from .BaseTester import BaseTester 
 from Attacker import Attacker
+from torch.autograd import Variable
+
 
 
 
@@ -15,8 +17,8 @@ from Attacker import Attacker
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 class RegTester(BaseTester):
-    def __init__(self, model, testdataloader, optimizer, criterion, classes, n_epoch, testbatchsize, expid, checkepoch, pres, stepsize, k, atmeth, c_1, c_2, eps, dataname, nstep, **kwargs):
-        super().__init__(model, testdataloader, optimizer, criterion, classes, n_epoch, testbatchsize, expid, checkepoch, pres, stepsize, k, atmeth, c_1, c_2, eps, dataname, nstep, **kwargs)
+    def __init__(self, model, testdataloader, optimizer, criterion, n_epoch, testbatchsize, expid, checkepoch, pres, stepsize, k, atmeth, c_1, c_2, eps, dataname, nstep, **kwargs):
+        super().__init__(model, testdataloader, optimizer, criterion, n_epoch, testbatchsize, expid, checkepoch, pres, stepsize, k, atmeth, c_1, c_2, eps, dataname, nstep, **kwargs)
         self.pert = []
         self.best_acc = 0
         self.startepoch = 0
@@ -26,17 +28,17 @@ class RegTester(BaseTester):
         I, targets = I.to(device), targets.to(device)
         targets = targets.long()
         if self.atmeth == 'REG':
-            I = torch.from_numpy(np.clip(I.cpu().numpy(), 0, 1))
+            I = Variable(torch.clamp(I, 0, 1.0))
             I = I.to(device)
 
         if self.atmeth == "PGD":
-            I , self.pert = self.attacker.PGDattack(I.cpu().numpy(),targets.cpu(),self.optimizer)
-            I = torch.from_numpy(I)
+            I, targets = Variable(I, requires_grad=True), Variable(targets)
+            I , self.pert = self.attacker.PGDattack(I,targets,self.optimizer)
             I = I.to(device)
     
         if self.atmeth == "FGSM":
-            I = self.attacker.FGSMattack(I.cpu().numpy(),targets.cpu(),self.optimizer)
-            I = torch.from_numpy(I)
+            I, targets = Variable(I, requires_grad=True), Variable(targets)
+            I = self.attacker.FGSMattack(I,targets,self.optimizer)
             I = I.to(device)
 
         self.optimizer.zero_grad()
