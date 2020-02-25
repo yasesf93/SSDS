@@ -1,6 +1,6 @@
 # SSDS (Stochastic Saddle-Point Dynamic System)
 
-This is the reference code for the paper "A Fast Saddle-Point Dynamical System Approach to Robust Deep Learning" (https://arxiv.org/pdf/1910.08623.pdf) by Yasaman Esfandiari (ISU), Aditya Balu (ISU), Keivan Ebrahimi (ISU), Umesh Vaidya (University of Clemson), Nicola Elia (University of Minnesota), and Soumik Sarkar (ISU).
+This is the reference code for the paper "A Fast Saddle-Point Dynamical System Approach to Robust Deep Learning" (https://arxiv.org/abs/1910.08623) by Yasaman Esfandiari (ISU), Aditya Balu (ISU), Keivan Ebrahimi (ISU), Umesh Vaidya (University of Clemson), Nicola Elia (University of Minnesota), and Soumik Sarkar (ISU).
 
 Using this repository you can train naturally trained and adversarially trained (FGSM, PGD, SGDA, SSDS, TRADES, etc) models for various datasets with different combinations of hyper parameters and model architectures. 
 
@@ -49,7 +49,7 @@ cd SSDS
 mkdir Trained Models
 cd Trained Models
 ```
-Download our pre-trained models from ['here'](https://drive.google.com/drive/folders/14Xl9k4Alsz6M9d_S_vwS8jZ5aBW7ZYRF?usp=sharing) and publicly available ['Madry'](https://github.com/MadryLab/robustness) and ['TRADES'](https://github.com/yaodongyu/TRADES/blob/master/README.md) models. set ```train = false``` and ```black_box = true``` in the 'config.json' file.
+Download our pre-trained models from ['SSDS'](https://drive.google.com/drive/folders/14Xl9k4Alsz6M9d_S_vwS8jZ5aBW7ZYRF?usp=sharing) and publicly available ['Madry'](https://github.com/MadryLab/robustness) and ['TRADES'](https://github.com/yaodongyu/TRADES/blob/master/README.md) models. set ```train = false``` and ```black_box = true``` in the 'config.json' file.
 
 ```bash
   $ python main.py -g 0
