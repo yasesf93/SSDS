@@ -16,8 +16,8 @@ from torch.autograd import Variable
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 class RegTesterBB(BaseTester):
-    def __init__(self, model, testdataloader, optimizer, criterion, classes, n_epoch, testbatchsize, expid, checkepoch, pres, stepsize, k, atmeth, c_1, c_2, eps, dataname, nstep, model_s, **kwargs):
-        super().__init__(model, testdataloader, optimizer, criterion, classes, n_epoch, testbatchsize, expid, checkepoch, pres, stepsize, k, atmeth, c_1, c_2, eps, dataname, nstep, **kwargs)
+    def __init__(self, model, testdataloader, optimizer, criterion, n_epoch, testbatchsize, expid, checkepoch, pres, stepsize, k, atmeth, c_1, c_2, eps, dataname, nstep, model_s, **kwargs):
+        super().__init__(model, testdataloader, optimizer, criterion, n_epoch, testbatchsize, expid, checkepoch, pres, stepsize, k, atmeth, c_1, c_2, eps, dataname, nstep, **kwargs)
         self.model_s = model_s
         self.pert = []
         self.best_acc = 0

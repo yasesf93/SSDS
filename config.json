@@ -1,12 +1,12 @@
 {
   "_comment": "===== DATASET CONFIGURATION =====",
-  "data_name": "CIFAR100",	"_comment": "====CIFAR10, CIFAR100, IMAGENET,MNIST, FashionMNIST====",
+  "data_name": "CIFAR10",	"_comment": "====CIFAR10, CIFAR100, IMAGENET,MNIST, FashionMNIST====",
 
 
 
   "_comment": "===== TRAINING CONFIGURATION =====",
 
-  "attack_method":"NOLAG", 	"_comment": "=====REG,SSDS,PGD,FGSM,NOLAG,NOLAM,TRADES,Madry====",
+  "attack_method":"SSDS", 	"_comment": "=====REG,SSDS,PGD,FGSM,NOLAG,NOLAM,TRADES,Madry====",
   "random_seed": 451760341,
   "training_epochs": 1000,   "_comment": "should be 1000 for CIFAR10 and IMAGENET, 500 for MNIST",
   "checkpoint_epochs": 100,
@@ -14,11 +14,11 @@
   "learning_rate_training": 0.1, "_comment": "should be 0.1 for CIFAR10, 0.01 for MNIST, 0.0001 for IMAGENET",
   "weight_decay": 0.0002,
   "momentum": 0.9,
-  "loss_function": "Xent",	"_comment":"Xent",
-  "optimizer": "SGDMOM",				"_comment":"SGD,SGDMOM,SubOpt,SubOptMOM",
+  "loss_function": "Xent",
+  "optimizer": "SubOptMOM",				"_comment":"SGD,SGDMOM,SubOpt,SubOptMOM",
   "model_architecture": "Resnet50",  		"_comment":"Resnet50,WResnet,Resnet18,Simple,VGG",
   "transform": true,                            "_comment" : "should be true for IMAGENET, false for MNIST and FMNIST" , 
-  "train" : true,
+  "train" : false,
   "precision_bound" : 0.001,
   
 
@@ -40,8 +40,8 @@
 
 "_comment": "=====TEST CONFIGURATION=====",
 
-  "black_box" : false,
-  "source_model" : "Madry", 
-  "target_model" : "SSDS", 
+  "black_box" : true,
+  "source_model" : "SSDS50", 
+  "target_model" : "Madry", 
   "test_batch_size": 128
 }

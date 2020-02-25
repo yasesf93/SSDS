@@ -200,7 +200,6 @@ if dataname == 'IMAGENET':
     print(num_ftrs)
     net.linear = nn.Linear(num_ftrs*49, 200)   
 
-#net = nn.DataParallel(net)
 net = net.to(device)
 net_s = net_s.to(device)
 
@@ -241,12 +240,12 @@ if training == True:
 
 #Testing
 if blackbox == True:   
-    if sourcem == 'SSDS':
+    if sourcem in ['SSDS50', 'SSDSWRN']:
         opt = 'SubOptMOM'
     else:
         opt = 'SGDMOM'
     if sourcem == 'Madry':
-        source_model = torch.load('Madry50.pt', map_location='cuda:1')
+        source_model = torch.load('Trained Models/Madry50.pt', map_location='cuda:1')
         state_dict = source_model['state_dict']
         new_state_dict = OrderedDict()
         for k, v in state_dict.items():
@@ -254,18 +253,21 @@ if blackbox == True:
             new_state_dict[name] = v
         net_s.load_state_dict(new_state_dict, strict=False)
     elif sourcem == 'TRADES':
-        source_model = torch.load('TRADESmodel_cifar_wrn.pt', map_location='cuda:1')
+        source_model = torch.load('Trained Models/TRADESWRN.pt', map_location='cuda:1')
         net_s.load_state_dict(source_model)
-    else:
-        sourceid = 'Experiments/%s_%s_%s_%s_%s'%(str(sourcem), str(opt), str(loss), str(dataname), str(model))
-        source_model = torch.load('%s/checkpoint/ckpt.trainbest'%(sourceid), map_location='cuda:1')
+    elif sourcem == 'SSDS50':
+        source_model = torch.load('Trained Models/SSDS50.train', map_location='cuda:1')
         net_s.load_state_dict(source_model['net'])
-    if targetm == 'SSDS':
+    else:
+        source_model = torch.load('Trained Models/SSDSWRN.train', map_location='cuda:1')
+        net_s.load_state_dict(source_model['net'])
+
+    if targetm in ['SSDS50', 'SSDSWRN']:
         opt = 'SubOptMOM'
     else:
         opt = 'SGDMOM'
     if targetm == 'Madry':
-        target_model = torch.load('Madry50.pt', map_location='cuda:1')
+        target_model = torch.load('Trained Models/Madry50.pt', map_location='cuda:1')
         state_dict_target = target_model['state_dict']
         new_state_dict_target = OrderedDict()
         for k, v in state_dict_target.items():
@@ -273,15 +275,17 @@ if blackbox == True:
             new_state_dict_target[name] = v
         net.load_state_dict(new_state_dict_target, strict=False)
     elif targetm == 'TRADES':
-        target_model = torch.load('TRADESmodel_cifar_wrn.pt', map_location='cuda:1')
+        target_model = torch.load('Trained Models/TRADESWRN.pt', map_location='cuda:1')
         net.load_state_dict(target_model)
-    else:
-        targetid = 'Experiments/%s_%s_%s_%s_%s'%(str(targetm), str(opt), str(loss), str(dataname), str(model))
-        target_model = torch.load('%s/checkpoint/ckpt.trainbest'%(targetid), map_location='cuda:1')
+    elif targetm == 'SSDS50':
+        target_model = torch.load('Trained Models/SSDS50.train', map_location='cuda:1')
+        net.load_state_dict(target_model['net'])
+    else: 
+        target_model = torch.load('Trained Models/SSDSWRN.train', map_location='cuda:1')
         net.load_state_dict(target_model['net'])
         print(target_model['epoch'])
         print(target_model['acc'])
-    testerBB = Testers.RegTesterBB(net, testloader, optimizer, criterion, classes, n_ep_PGD, batchsizets, expid, checkepoch, pres, stepsize_pgd, k, atmeth, c_1, c_2, eps, dataname, nstep, net_s)
+    testerBB = Testers.RegTesterBB(net, testloader, optimizer, criterion, n_ep_PGD, batchsizets, expid, checkepoch, pres, stepsize_pgd, k, atmeth, c_1, c_2, eps, dataname, nstep, net_s)
     bb_test_accuracy = testerBB.test(epochs=1, model=net)
     print('source model', sourcem)
     print('target model', targetm)
