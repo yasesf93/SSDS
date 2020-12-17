@@ -46,13 +46,11 @@ class MNISTdel(data.Dataset):
             self.train_data, self.train_labels = torch.load(
                 os.path.join(self.root, self.processed_folder, self.training_file))
             self.delta=torch.zeros(self.train_data.shape).unsqueeze(1)
-            # print(self.train_data.shape)
         else:
             self.test_data, self.test_labels = torch.load(
                 os.path.join(self.root, self.processed_folder, self.test_file))
             self.delta=torch.zeros(self.test_data.shape).unsqueeze(1)
-            # print(self.test_data.shape)
-        # print(self.delta.shape)
+
     def __getitem__(self, index):
         """
         Args:

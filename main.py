@@ -16,6 +16,7 @@ import Loss
 import Testers
 import argparse 
 from collections import OrderedDict
+from Loss.cw import CWLoss
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-e', '--exp', type=str, default='config.json')
@@ -61,6 +62,7 @@ pres = config['precision_bound']
 
 eps = config['epsilon']
 nstep = config['num_steps']
+nstep_train = config['num_steps_train']
 stepsize_ssds = config['step_size_SSDS']
 stepsize_pgd = config['step_size_PGD']
 v_scale = config['v']
@@ -81,7 +83,6 @@ expid = 'Experiments/%s_%s_%s_%s_%s'%(str(atmeth), str(opt), str(loss), str(data
 print('expid',expid)
 ######################################################## Transformation ########################################
 if config['transform']==True:
-    #if dataname == "CIFAR10":
     if dataname  in ["CIFAR10", "CIFAR100"]:
         transform_train = transforms.Compose([
         transforms.RandomCrop(32, padding=4),
@@ -93,6 +94,16 @@ if config['transform']==True:
         transform_test = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+        ])
+    elif dataname == "SVHN":
+        transform_train = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),  # [-1 1]
+        ])
+
+        transform_test = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),  # [-1 1]
         ])
     elif dataname == "IMAGENET":
         data_transforms = {
@@ -136,6 +147,16 @@ if dataname == "CIFAR100":
     testloader = Dataloaders.DelDataLoader(testset, batch_size=batchsizets, shuffle=True)
     v_ts = v_scale*torch.ones(testloader.dataset.data.shape[0], 1)    
     num_classes = 100
+    num_channels = 3
+
+if dataname == "SVHN":
+    trainset = Datasets.SVHNdel(root='./data',split='train',download=True,transform=transform_train)
+    trainloader = Dataloaders.DelDataLoader(trainset, batch_size=batchsizetr, shuffle=True)
+    v_tr = v_scale*torch.ones(trainloader.dataset.data.shape[0], 1)     
+    testset = Datasets.SVHNdel(root='./data',split='test',download=True,transform=transform_test)
+    testloader = Dataloaders.DelDataLoader(testset, batch_size=batchsizets, shuffle=True)
+    v_ts = v_scale*torch.ones(testloader.dataset.data.shape[0], 1)
+    num_classes = 10
     num_channels = 3
 
 if dataname == "IMAGENET":
@@ -199,6 +220,8 @@ if dataname == 'IMAGENET':
     num_ftrs = net.linear.in_features
     print(num_ftrs)
     net.linear = nn.Linear(num_ftrs*49, 200)   
+
+# net = nn.DataParallel(net)
 
 net = net.to(device)
 net_s = net_s.to(device)
@@ -298,7 +321,7 @@ else:
     print(tr_model['acc'])
     ts_acc_mat = {}
 
-    for attack in ['REG', 'FGSM', 'PGD', 'NOLAG', 'SSDS']:
+    for attack in ['CW', 'PGD', 'REG', 'FGSM']:
         if dataname == "MNIST":
             testset = Datasets.MNISTdel(root='./data', train=False, download=True, transform=transform_test)
             testloader = Dataloaders.DelDataLoader(testset, batch_size=batchsizets, shuffle=True)
@@ -314,14 +337,21 @@ else:
         if dataname == "IMAGENET":
             testloader = dataloaders['test']
         atmeth = attack
-        if atmeth in ['FGSM', 'REG']:
+        if atmeth in ['FGSM', 'REG', 'CW']:
             n_ep_test = 1
         if atmeth in ['SSDS','NOLAM','NOLAG']:
             n_ep_test = n_epoch
         if atmeth == 'PGD':
             n_ep_test = n_ep_PGD
+        if atmeth == 'CW':
+            atmeth_name = 'PGD'
+            criterion_att = CWLoss(num_classes)
+            tester = Testers.RegTester(net, testloader, optimizer, criterion, n_ep_test, batchsizets, expid, checkepoch, pres, stepsize_pgd, k, atmeth_name, c_1, c_2, eps, dataname, nstep, criterion_att)
+            test_accuracy = tester.test(epochs=n_ep_test, model=net)
+            ts_acc_mat[attack] = test_accuracy
         if atmeth == 'PGD' or  atmeth == 'FGSM' or atmeth == 'REG' :
-            tester = Testers.RegTester(net, testloader, optimizer, criterion, n_ep_test, batchsizets, expid, checkepoch, pres, stepsize_pgd, k, atmeth, c_1, c_2, eps, dataname, nstep)
+            criterion_att = nn.CrossEntropyLoss()
+            tester = Testers.RegTester(net, testloader, optimizer, criterion, n_ep_test, batchsizets, expid, checkepoch, pres, stepsize_pgd, k, atmeth, c_1, c_2, eps, dataname, nstep, criterion_att)
             test_accuracy = tester.test(epochs=n_ep_test, model=net)
             ts_acc_mat[attack] = test_accuracy
         elif atmeth == 'SSDS' or atmeth == 'NOLAG' or atmeth == 'NOLAM':

@@ -16,7 +16,6 @@ class BaseTrainer(object):
         self.traindataloader = traindataloader
         self.optimizer = optimizer
         self.criterion = criterion
-        #self.classes = classes
         self.batchsizetr = trainbatchsize
         self.best_acc = 0
         self.startepoch = 0
@@ -72,7 +71,7 @@ class BaseTrainer(object):
             if not os.path.isdir('%s/checkpoint'%(self.expid)):
                 os.mkdir('%s/checkpoint'%(self.expid))
             torch.save(state, '%s/checkpoint/ckpt.trainbest'%(self.expid))
-            best_acc = acc
+            self.best_acc = acc
 
         #Save checkpoint last
         acc = 100.*correct/total
@@ -84,7 +83,7 @@ class BaseTrainer(object):
             if not os.path.isdir('%s/checkpoint'%(self.expid)):
                 os.mkdir('%s/checkpoint'%(self.expid))
             torch.save(state, '%s/checkpoint/ckpt.trainlast'%(self.expid))
-            best_acc = acc
+            self.best_acc = acc
 
 
     def train(self, epochs, model):

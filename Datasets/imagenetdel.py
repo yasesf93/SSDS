@@ -75,7 +75,6 @@ class ImageNet(torch_datasets.VisionDataset):
 
     def __init__(self, root_dir, is_train, transform=None, target_transform=None, is_valid_file=None):
         if is_train:
-            # root_dir = os.path.join(root_dir, 'train')
             transform = transforms.Compose([
                 transforms.RandomResizedCrop(224),
                 transforms.RandomHorizontalFlip(),
@@ -83,7 +82,6 @@ class ImageNet(torch_datasets.VisionDataset):
                 transforms.Normalize(ImageNet.MEAN, ImageNet.STD),
             ])
         else:
-            # root_dir = os.path.join(root_dir, 'val')
             transform = transforms.Compose([
                 transforms.Resize(256),
                 transforms.CenterCrop(224),
@@ -140,13 +138,10 @@ class ImageNet(torch_datasets.VisionDataset):
         if self.transform is not None:
             sample = self.transform(sample)
 
-        # try:
         if os.path.exists(os.path.join(basefolder,'deltas',file)):
             delta = self.trans(self.loader(os.path.join(basefolder,'deltas',file)))
         else:
             delta = torch.zeros_like(sample)
-        # except OSError:
-        #     delta = torch.zeros_like(sample)
         if self.target_transform is not None:
             target = self.target_transform(target)
         return (sample, delta), target
@@ -155,14 +150,9 @@ class ImageNet(torch_datasets.VisionDataset):
         path, target = self.samples[index]
         folder, file = os.path.split(path)
         basefolder, _ = os.path.split(folder)
-        # if os.path.exists(file+'_delta.JPEG'):
-        #     print('overwriting')
-        # else:
-        #     print('creating')
         delta_img = self.invtrans(delta.cpu())
         if not os.path.exists(os.path.join(basefolder,'deltas')):
             os.makedirs(os.path.join(basefolder,'deltas'))
-        # print(file)
         delta_img.save(os.path.join(basefolder,'deltas',file))
 
 

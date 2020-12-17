@@ -17,7 +17,6 @@ class BaseTester(object):
         self.testdataloader = testdataloader
         self.optimizer = optimizer
         self.criterion = criterion
-        #self.classes = classes
         self.batchsizets = testbatchsize
         self.best_acc = 0
         self.startepoch = 0
@@ -66,7 +65,7 @@ class BaseTester(object):
     def test(self, epochs, model):
         model.eval()
         print(epochs)
-        for epoch in range(self.startepoch, epochs+1):
+        for epoch in range(self.startepoch, epochs):
             self.test_epoch(epoch) 
             if self.atmeth in ['SSDS', 'NOLAG', 'NOLAM'] and (epoch)%self.checkepoch == 0:
                 self.save_log(epoch)

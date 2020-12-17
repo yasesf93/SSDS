@@ -153,8 +153,6 @@ class DelTrainer(BaseTrainer):
             self.optimizer.zero_grad()
             outputs = self.model(pert)
             _, predicted = outputs.max(1)
-            #PlotImg(I.squeeze().cpu().numpy(), delta.squeeze().cpu().numpy(), pert.squeeze().cpu().numpy(), self.classes[targets], self.classes[predicted],
-            #    '%s/train_results/img_%s.pdf'%(self.expid, img_id), self.dataname)
             PlotImg(I.squeeze().cpu().numpy(), delta.squeeze().cpu().numpy(), pert.squeeze().cpu().numpy(),
                 '%s/train_results/img_%s.pdf'%(self.expid, img_id), self.dataname)
         

@@ -119,11 +119,9 @@ class CIFAR10del(data.Dataset):
         # doing this so that it is consistent with all other datasets
         # to return a PIL Image
         img = Image.fromarray(img)
-        # delta = Image.fromarray(delta)
 
         if self.transform is not None:
             img = self.transform(img)
-            # delta = self.transform(delta)
         if self.target_transform is not None:
             target = self.target_transform(target)
 

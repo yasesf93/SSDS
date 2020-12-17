@@ -3,12 +3,6 @@ import torch
 import json
 from .dataloaderdel import DelDataLoader 
 
-#with open('config.json') as config_file: # Reading the Config File 
-#    config = json.load(config_file)
-
-#seed_num = config['random_seed']
-#np.random.seed(seed_num)
-
 
 class DelDataLoaderIMG(DelDataLoader):
     """docstring for DataLoader"""

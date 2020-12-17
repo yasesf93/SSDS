@@ -19,7 +19,6 @@ class CleanDataLoader(object):
     def __getitem__(self, index):
         """'Generate one batch of data'"""
         # Generate indexes of the batch
-        #print("here")
         if index == 'all':
             indexes = self.indexes
         else:
